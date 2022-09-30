@@ -181,9 +181,7 @@ class ConfiguracionEmpresaController {
             }
             conf.permitirCancelar = params?.permitirCancelar == "on" ? true : false
             conf.permitirReagendar = params?.permitirReagendar == "on" ? true : false
-            if(  !conf.permitirCancelar && !conf.permitirReagendar ){
-                conf.periodoCambioReserva = 0
-            }
+
             configuracionEmpresaService.save(conf)
         }catch(e){
             exito = false

@@ -7,17 +7,11 @@
         <title><g:message code="default.show.label" args="[entityName]" /></title>
     </head>
     <body>
-    <% def telefono = ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)?.fono %>
-%{--    <g:render template="/layouts/botonera" params="[controlador: 'Reserva', metodo:'Ver más' ]" />--}%
+
     <sec:ifAnyGranted roles="ROLE_USER">
         <g:if test="${reserva?.tipoReserva?.id == 1 && reserva?.estadoReserva?.id == 1 }">
             <div class="panel-tag">
                 <p>Recuerda que tu reserva será válida cuando la empresa acepte tu solicitud. Verifica el ESTADO de tu reserva.</p>
-            </div>
-        </g:if>
-        <g:if test="${reserva?.inicioExacto > new Date()}">
-            <div class="panel-tag">
-                <p>Si necesitas cancelar una reserva contáctate directamente con el lugar que reservaste al ${telefono}.</p>
             </div>
         </g:if>
     </sec:ifAnyGranted>
@@ -86,65 +80,35 @@
                                 </tr>
                                 <tr class="prop">
                                     <td valign="top" class="name"><g:message code="mapa.enabled.label" default="Contacto Empresa" /></td>
-                                    <td valign="top" class="value" >${telefono}</td>
+                                    <td valign="top" class="value" >${configuracion?.fono ?: 'N/A'}</td>
                                 </tr>
 
                             </sec:ifAnyGranted>
                             </tbody>
                         </table>
-
-                        <sec:ifAnyGranted roles="ROLE_SUPERUSER, ROLE_ADMIN">
-                            <g:if test="${ reserva?.terminoExacto >= new Date() }">
-                                <g:if test="${reserva?.estadoReserva?.id == 1 && reserva?.tipoReserva?.id == 1}">
-                                    <div class="row" style="margin-bottom: 1em; display: flex; justify-content: center;">
-                                        <div class="col-md-5 ">
-                                            <a href="${createLink(controller: 'reserva', action: 'aprobarSolicitud', id: reserva?.id)}" class="btn btn-info btn-block btn-md mt-3" title="Aprobar">
-                                                Aprobar
-                                            </a>
-                                        </div>
-                                        <div class="col-md-5">
-                                            <a href="${createLink(controller: 'reserva', action: 'cancelarSolicitud', id: reserva?.id)}" class="btn btn-danger btn-block btn-md mt-3" title="Rechazar" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">
-                                                Rechazar
-                                            </a>
-                                        </div>
-
-                                    </div>
-                                </g:if>
-                                <g:else>
-                                    <div class="row">
-                                        <div class="col-md-6 ml-auto text-right" style="margin-bottom: 1em">
-                                            <g:link controller="reserva" action="${ reserva?.tipoReserva?.id != 2 ? 'eliminarReserva' : 'declaracionEliminacionPrepago'}" id="${reserva?.id}">
-                                                <button class="delete btn btn-block btn-danger btn-lg mt-3" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">Eliminar Reserva</button>
-                                            </g:link>
-                                        </div>
-                                    </div>
-                                </g:else>
-                            </g:if>
-                            <g:if test="${reserva?.terminoExacto < new Date() && reserva?.estadoReserva?.id == 2 }">
-                                <div class="row" >
-                                    <g:if test="${!reserva?.evaluacion?.evaluacionToUser?.nota}">
-                                        <div class="col-md-6" style="margin-bottom: 1em">
-                                            <a href="#" data-toggle="modal" data-target="#modalEvaluacionUser${reserva?.id}">
-                                                <button class="btn btn-block btn-info btn-lg mt-3">Evaluar</button>
-                                            </a>
-                                        </div>
-                                        <g:render template="/evaluacion/evaluacionToUser" model="[reserva: reserva]"/>
-
-                                    </g:if>
-                                    <g:if test="${!reserva?.valorFinal}">
-                                        <div class="col-md-6" style="margin-bottom: 1em">
-                                            <a href="#" data-toggle="modal" data-target="#modalValorFinal${reserva?.id}">
-                                                <button class="btn btn-block btn-secondary btn-lg mt-3">Valor Final</button>
-                                            </a>
-                                        </div>
-                                        <g:render template="/reserva/setValorFinal" model="[reserva: reserva]"/>
-                                    </g:if>
-                                </div>
-                            </g:if>
-                        </sec:ifAnyGranted>
+                        <g:render template="botoneraAdmin" model="[ hoy: hoy, reserva: reserva, configuracion: configuracion ]"/>
+                        <g:render template="botoneraUser" model="[ hoy: hoy,
+                                                                    reserva: reserva,
+                                                                    configuracion: configuracion,
+                                                                    puedeCancelar: puedeCancelar,
+                                                                   puedeReagendar: puedeReagendar
+                        ]"/>
+                        <g:render template="reagendar" model="[reserva: reserva, configuracion: configuracion]"/>
                     </div>
             </div>
     </div>
+    <script>
+        <g:if test="${flash.message}">
+        $(document).ready( function () {
+            toastr.success("${flash.message}");
+        });
+        </g:if>
+        <g:if test="${flash.error}">
+        $(document).ready( function () {
+            toastr.warning("${flash.error}");
+        });
+        </g:if>
 
+    </script>
     </body>
 </html>

@@ -36,15 +36,17 @@ class ReservaController {
     NotificationService notificationService
 
     ReservaPlanificadaService reservaPlanificadaService
+    ReservaUtilService reservaUtilService
 
     DiaService diaService
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy")
     def springSecurityService
     def flowService
     def tempService
-    def mailService
     def groovyPageRenderer
     def utilService
+    def validadorPermisosUtilService
+    def formatoFechaUtilService
 
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
 
@@ -55,9 +57,26 @@ class ReservaController {
     }
 
     def show(Long id) {
-        if(validarRelacionReservaUser(id)){
+        if(validadorPermisosUtilService?.validarRelacionReservaUser(id)){
+            User user = springSecurityService.getCurrentUser()
+            Reserva reserva = reservaService.get(id)
             try{
-                respond reservaService.get(id)
+                if(validadorPermisosUtilService.esRoleAdmin(user)){
+                    ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)?.fono
+                    respond reserva, model: [
+                            hoy: new Date(),
+                            configuracion: ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)
+                    ]
+                }
+                if(validadorPermisosUtilService.esRoleUser(user)){
+                    ConfiguracionEmpresa configuracion = ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)
+                    respond reserva, model: [
+                            hoy: new Date(),
+                            configuracion: configuracion,
+                            puedeCancelar: validadorPermisosUtilService.userPuedeCancelarReserva(reserva,configuracion),
+                            puedeReagendar: validadorPermisosUtilService.userPuedeReagendarReserva(reserva, configuracion)
+                    ]
+                }
             }catch(e){}
         }else{
             render view: '/notFound'
@@ -224,7 +243,7 @@ class ReservaController {
             dia.format("%02d", day)
             diaFrm = dia
             mesFrm = mes
-            String nombreDia = obtenerNombreDia( c.get(Calendar.DAY_OF_WEEK))
+            String nombreDia = formatoFechaUtilService?.obtenerNombreDia( c.get(Calendar.DAY_OF_WEEK))
 
             String fecha=  year + "-" + mesFrm + "-" + diaFrm
             Date fechaDate = frm.parse(fecha)
@@ -236,25 +255,6 @@ class ReservaController {
         }
 //        println(dateList)
         return  dateList
-    }
-
-    String obtenerNombreDia(Integer id){
-        switch(id){
-            case 1:
-                return "domingo"
-            case 2:
-                return "lunes"
-            case 3:
-                return "martes"
-            case 4:
-                return "miercoles"
-            case 5:
-                return "jueves"
-            case 6:
-                return "viernes"
-            case 7:
-                return "sabado"
-        }
     }
 
     Boolean validarRelacionEspacioUser(Long espacioId){
@@ -400,21 +400,6 @@ class ReservaController {
             }
         }catch(e){}
         render view: 'reservasHistoricasUser', model: [reservaList: reservaList]
-    }
-
-    Boolean validarRelacionReservaUser(Long reservaId){
-        Reserva reserva = Reserva.findById(reservaId)
-        User user = springSecurityService.getCurrentUser()
-
-        if( reserva && user ){
-            if( reserva?.espacio?.empresa?.usuario == user || reserva?.usuario == user ){
-                return true
-            }else{
-                return false
-            }
-        }else{
-            return false
-        }
     }
 
     @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
@@ -1101,42 +1086,26 @@ class ReservaController {
         }catch(e){}
     }
 
-    @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
+    @Secured(['ROLE_USER','ROLE_ADMIN', 'ROLE_SUPERUSER'])
     def eliminarReserva(Long id){
-        String espacio
-        String fecha
-        String hora
-        String razonSocial
-        String email
-        Long espacioId
-        User usuario = new User()
+        User user = springSecurityService.getCurrentUser()
+        Reserva reserva = Reserva.get(id)
         try{
-            User user = springSecurityService.getCurrentUser()
-            Reserva reserva = Reserva.get(id)
-            espacioId = reserva?.espacio?.id
-            if( reserva?.espacio?.empresa?.usuario?.id == user?.id ){
-                if( reserva?.inicioExacto > new Date() ){
-                    email = reserva?.usuario?.email
-                    espacio = reserva?.espacio?.nombre
-                    fecha = g.formatDate(format: "dd-MM-yyyy", date: reserva?.fechaReserva)
-                    hora = reserva?.horaInicio
-                    razonSocial = reserva?.espacio?.empresa?.razonSocial
-                    usuario = reserva?.usuario
-                    reservaService.delete(reserva?.id)
-
-                    String template = groovyPageRenderer.render(template:  "/correos/cancelReservaByAdmin", model: [espacio: espacio, fecha: fecha, hora: hora, razonSocial: razonSocial, user: usuario])
-                    utilService.enviarCorreo(email, "noresponder@bookeame.cl", "Reserva Cancelada", template  )
-
-                    flash.message = "Reserva eliminada correctamente."
-                }else{
-                    flash.error = "NO se puede eliminar una reserva Histórica."
-                }
-
+            if(reservaUtilService.eliminarReserva(id)){
+                flash.message="Reserva eliminada correctamente."
+            }else{
+                flash.error="No se ha podido eliminar la reserva, por favor intenta más tarde."
             }
         }catch(e){
             flash.error = "Ha ocurrido un error."
+            render view: '/notFound'
         }
-        redirect(controller: 'reserva', action: 'crearReservaManual', id: espacioId)
+        if( validadorPermisosUtilService.esRoleUser(user)){
+            redirect(controller: 'reserva', action: 'reservasVigentesUser')
+        }
+        if( validadorPermisosUtilService.esRoleAdmin(user)){
+            redirect(controller: 'reserva', action: 'crearReservaManual', id: reserva?.espacio?.id)
+        }
     }
 
     @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
@@ -1191,7 +1160,7 @@ class ReservaController {
     @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
     def declaracionEliminacionPrepago(Long id){
         Reserva reserva = Reserva.get(id)
-        if( validarRelacionReservaUser(reserva?.id) ){
+        if( validadorPermisosUtilService?.validarRelacionReservaUser(reserva?.id) ){
             respond Reserva.get(id)
         }else{
             render view: '/notFound'
@@ -1377,7 +1346,7 @@ class ReservaController {
     def setValorFinal(Long id){
         try{
             Reserva reserva = Reserva.get(id)
-            if( validarRelacionReservaUser(reserva?.id) ){
+            if( validadorPermisosUtilService?.validarRelacionReservaUser(reserva?.id) ){
                 Integer aux = params?.valorFinal.toInteger()
                 reserva.valorFinal = reserva?.valor
                 reserva.valor = aux
@@ -1388,4 +1357,73 @@ class ReservaController {
         redirect(controller: 'reserva', action: 'show', id: id)
     }
 
+    @Secured(['ROLE_USER','ROLE_SUPERUSER'])
+    def cancelarReserva(){
+
+    }
+
+    def getHorariosDisponibles(){
+        Reserva reserva = Reserva.get(params?.reserva?.toLong())
+        List<Modulo> moduloList = []
+        List<Reserva> reservaList = []
+        String nombreDia
+        Calendar c = Calendar.getInstance()
+        List<Modulo> horarioList = []
+
+        if( reserva && params?.fecha ){
+            try{
+                def fechaNuevaReserva = sdf.parse(params?.fecha)
+                c.setTime(fechaNuevaReserva)
+                nombreDia = formatoFechaUtilService?.obtenerNombreDia( c.get(Calendar.DAY_OF_WEEK))
+
+                moduloList = Modulo.findAllByEspacio(reserva?.espacio)
+                reservaList = Reserva.findAllByFechaReservaAndEspacio(c.getTime(), reserva?.espacio)
+
+                for( modulo in moduloList ){
+                    if( modulo?.dias?.getProperty(nombreDia) ){
+                        if( !reservaList.find{ it?.horaInicio == modulo?.horaInicio } ){
+                            horarioList.add(modulo)
+                        }
+                    }
+                }
+            }catch(e){}
+        }
+        render g.select(id: 'horario', name: 'horario',required: 'required', from: horarioList.sort{ it?.horaInicio }, optionKey: 'id', optionValue: 'horarioModulo' , noSelection: ['':'- Seleccione Horario -'], class: "form-control select2", style:"width: 100%;" )
+    }
+
+    def reagendarReserva(Long id){
+        try{
+            Reserva reserva = Reserva.get(id)
+            ConfiguracionEmpresa configuracionEmpresa = ConfiguracionEmpresa.findByEmpresa(reserva?.espacio?.empresa)
+            Modulo modulo = Modulo.get(params?.horario?.toLong())
+            String templateEmpresa
+            String templateUser
+            if( reserva && modulo ){
+                if( validadorPermisosUtilService?.userPuedeReagendarReserva(reserva,configuracionEmpresa)
+                    && validadorPermisosUtilService?.validarRelacionReservaUser(reserva?.id)
+                    && validadorPermisosUtilService?.validarRelacionEspacioModulo(modulo, reserva?.espacio)
+                    && validadorPermisosUtilService?.validarRelacionModuloFecha(modulo, sdf.parse(params?.fechaReagendar)) ){
+
+                    reserva.horaInicio = modulo?.horaInicio
+                    reserva.horaTermino = modulo?.horaTermino
+                    reserva.fechaReserva = sdf.parse(params?.fechaReagendar)
+                    reserva.valor = modulo?.valor
+                    reservaService.save(reserva)
+                    flash.message = "Reserva Reagendada exitosamente!"
+
+                    // ENVIO DE CORREO Y NOTIFICACION AL USUARIO
+                    templateUser = groovyPageRenderer.render(template:  "/correos/reagendarUser", model: [reserva: reserva])
+                    utilService.enviarCorreo(reserva?.usuario?.email, "noresponder@bookeame.cl", "Tu reserva ha sido reagendada.", templateUser )
+                    notificationService.sendPushNotification(reserva?.usuario?.id, "AVISO IMPORTANTE.", "Tu reserva ha sido reagendada.")
+
+                    // ENVIO DE CORREO Y NOTIFICACION A LA EMPRESA
+                    templateEmpresa = groovyPageRenderer.render(template:  "/correos/reagendarEmpresa", model: [reserva: reserva])
+                    utilService.enviarCorreo(reserva?.espacio?.empresa?.email, "noresponder@bookeame.cl", "Una reserva ha sido reagendada.", templateEmpresa)
+                    notificationService.sendPushNotification(reserva?.espacio?.empresa?.usuario?.id, "AVISO IMPORTANTE.", "Una reserva ha sido reagendada.")
+
+                }else{ flash.error = "Ups! Ha ocurrido un error" }
+            }else{ flash.error = "Ups! Ha ocurrido un error" }
+        }catch(e){ flash.error = "Ups! Ha ocurrido un error" }
+        redirect(controller: 'reserva', action: 'show', id: id)
+    }
 }

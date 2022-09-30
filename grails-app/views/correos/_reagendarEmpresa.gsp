@@ -722,14 +722,13 @@
 	<tr>
 		<td bgcolor="white">
 			<div style="margin-top: 1em; margin-left: 2em;">
-				<h2>Reserva Cancelada</h2>
+				<h2>Reserva Reagendada</h2>
 			</div>
 		</br>
 			<div style="margin-right: 2em;margin-top: 1em; margin-left: 2em;">
-				Hola ${reserva?.usuario?.nombre},<br><br>
-				La empresa ${reserva?.espacio?.empresa?.razonSocial} ha cancelado tu reserva para el espacio ${reserva?.espacio} con fecha ${g.formatDate(format: "dd-MM-yyyy", date: reserva?.fechaReserva)} a las ${reserva?.horaInicio} hrs.<br>
-				Nosotros no tenemos registro de ningún tipo de pago a través de nuestra plataforma. Ante cualquier eventualidad por favor contáctanos por nuestros canales de soporte.
-
+				Hola ${reserva?.espacio?.empresa?.razonSocial},<br><br>
+				La reserva de ${reserva?.espacio} realizada por ${reserva?.usuario?.nombreCompleto} ha sido reagendada para el <g:formatDate format="dd-MM-yyyy" date="${reserva?.fechaReserva}"/>
+				a las ${reserva?.horaInicio} hrs.
 			</div>
 			<br><br><br>
 			<div style="margin-left: 2em;">
@@ -762,4 +761,5 @@
 
 </table>
 </body>
+
 

@@ -14,7 +14,8 @@
         <label class="form-label" for="periodoCambioReserva">Permisos Clientes</label>
         <div class="input-group">
             <g:field type="number" id="periodoCambioReserva" min="0" max="100" step="1" name="periodoCambioReserva" class="form-control"
-                     aria-label="Text input with checkbox" placeholder="Tiempo de anticipación en Horas" value="${configuracionEmpresa?.periodoCambioReserva}"/>
+                     aria-label="Text input with checkbox" placeholder="Tiempo de anticipación en Horas" value="${configuracionEmpresa?.periodoCambioReserva}"
+                        disabled=" ${!configuracionEmpresa?.permitirCancelar && !configuracionEmpresa?.permitirReagendar} " />
             <div class="input-group-append">
                 <div class="input-group-text">
                     <div class="custom-control d-flex custom-switch">
@@ -32,7 +33,7 @@
                 </div>
             </div>
         </div>
-        <span class="help-block">Periodo de anticipación. Si no necesita tiempo de anticipacion ingrese 0.</span>
+        <span class="help-block">Horas de anticipación. Si no necesita tiempo de anticipacion ingrese 0.</span>
 
     </div>
 
