@@ -11,7 +11,7 @@
             </g:if>
             <g:if test="${ puedeReagendar }">
                 <div class="col-md-5">
-                    <a   data-toggle="modal" data-target="#modalReagendar" href="${createLink(controller: 'reserva', action: 'cancelarSolicitud', id: reserva?.id)}"
+                    <a   data-toggle="modal" data-target="#modalReagendar"
                          class="btn btn-info btn-block btn-md mt-3" title="Reagendar">
                         Reagendar Reserva
                     </a>

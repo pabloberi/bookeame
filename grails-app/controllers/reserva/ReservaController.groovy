@@ -46,6 +46,7 @@ class ReservaController {
     def groovyPageRenderer
     def utilService
     def validadorPermisosUtilService
+    def validaPermisosReservaUtilService
     def formatoFechaUtilService
 
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
@@ -64,7 +65,9 @@ class ReservaController {
                 if(validadorPermisosUtilService.esRoleAdmin(user)){
                     ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)?.fono
                     respond reserva, model: [
-                            hoy: new Date(),
+                            esReservaVigente: validaPermisosReservaUtilService?.esReservaVigente(reserva),
+                            esReservaPosPagoPendiente: validaPermisosReservaUtilService?.esReservaPosPagoPendiente(reserva),
+                            esReservaHistorica: validaPermisosReservaUtilService?.esReservaHistorica(reserva),
                             configuracion: ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)
                     ]
                 }
@@ -77,7 +80,9 @@ class ReservaController {
                             puedeReagendar: validadorPermisosUtilService.userPuedeReagendarReserva(reserva, configuracion)
                     ]
                 }
-            }catch(e){}
+            }catch(e){
+                render view: '/error'
+            }
         }else{
             render view: '/notFound'
         }

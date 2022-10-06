@@ -86,12 +86,18 @@
                             </sec:ifAnyGranted>
                             </tbody>
                         </table>
-                        <g:render template="botoneraAdmin" model="[ hoy: hoy, reserva: reserva, configuracion: configuracion ]"/>
+                        <g:render template="botoneraAdmin" model="[ hoy: hoy,
+                                                                    reserva: reserva,
+                                                                    configuracion: configuracion,
+                                                                    esReservaVigente: esReservaVigente,
+                                                                    esReservaHistorica: esReservaHistorica,
+                                                                    esReservaPosPagoPendiente: esReservaPosPagoPendiente
+                        ]"/>
                         <g:render template="botoneraUser" model="[ hoy: hoy,
                                                                     reserva: reserva,
                                                                     configuracion: configuracion,
                                                                     puedeCancelar: puedeCancelar,
-                                                                   puedeReagendar: puedeReagendar
+                                                                    puedeReagendar: puedeReagendar
                         ]"/>
                         <g:render template="reagendar" model="[reserva: reserva, configuracion: configuracion]"/>
                     </div>

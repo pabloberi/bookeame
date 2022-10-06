@@ -11,6 +11,7 @@ class ValidadorPermisosUtilService {
     FormatoFechaUtilService formatoFechaUtilService
     def springSecurityService
 
+    // INICIA PERMISOS DE USUARIOS
     Boolean userPuedeCancelarReserva(Reserva reserva, ConfiguracionEmpresa configuracion){
         boolean permiso = false
         if( reserva && configuracion ){
@@ -23,7 +24,6 @@ class ValidadorPermisosUtilService {
         return permiso
     }
 
-
     Boolean userPuedeReagendarReserva(Reserva reserva, ConfiguracionEmpresa configuracion){
         boolean permiso = false
         if( reserva && configuracion ){
@@ -34,8 +34,6 @@ class ValidadorPermisosUtilService {
         }
         return permiso
     }
-
-
 
     Boolean cumpleConPeriodoAnticpacion(Date fechaInicioReserva, Integer horas){
         boolean permiso = false
@@ -54,6 +52,7 @@ class ValidadorPermisosUtilService {
         }
         return permiso
     }
+    // FIN PERMISOS DE USUARIOS
 
     Boolean esRoleUser(User user){
         return user.authorities.findAll().find { it -> it.authority == "ROLE_USER" }
@@ -63,6 +62,7 @@ class ValidadorPermisosUtilService {
         return user.authorities.findAll().find { it -> it.authority == "ROLE_ADMIN" }
     }
 
+    // INICIA VALIDACION DE RELACIONES
     Boolean validarRelacionReservaUser(Long reservaId){
         Reserva reserva = Reserva.findById(reservaId)
         User user = springSecurityService.getCurrentUser()
@@ -102,4 +102,7 @@ class ValidadorPermisosUtilService {
             }
         }catch(e){ return false }
     }
+    // FIN VALIDACION DE RELACIONES
+
+
 }
