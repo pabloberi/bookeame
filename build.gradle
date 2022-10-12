@@ -11,13 +11,13 @@ buildscript {
     }
     dependencies {
         classpath "org.grails:grails-gradle-plugin:$grailsVersion"
-        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.0.10"
+        classpath "com.bertramlabs.plugins:asset-pipeline-gradle:3.4.6"
 //        classpath "org.grails.plugins:hibernate5:7.0.0"
 //        classpath "gradle.plugin.com.github.erdi.webdriver-binaries:webdriver-binaries-gradle-plugin:2.0"
 
-        classpath "org.grails.plugins:hibernate5:7.2.2"
+        classpath "org.grails.plugins:hibernate5:7.0.0.RC1"
         classpath "gradle.plugin.com.github.erdi.webdriver-binaries:webdriver-binaries-gradle-plugin:2.6"
-        classpath "org.grails.plugins:views-gradle:2.2.1"
+        classpath "org.grails.plugins:views-gradle:2.3.2"
     }
 }
 
@@ -28,10 +28,12 @@ apply plugin:"eclipse"
 apply plugin:"idea"
 apply plugin:"war"
 apply plugin:"org.grails.grails-web"
+apply plugin:"org.grails.plugins.views-json"
 apply plugin:"org.grails.grails-gsp"
 apply plugin:"com.bertramlabs.asset-pipeline"
 apply plugin:"com.github.erdi.webdriver-binaries"
-apply plugin:"org.grails.plugins.views-json"
+
+
 
 repositories {
     maven { url "https://repo.grails.org/grails/core" }
@@ -46,13 +48,13 @@ configurations {
 }
 
 dependencies {
-//    implementation "com.bertramlabs.plugins:asset-pipeline-grails:3.4.6"
-    implementation "io.micronaut:micronaut-inject-groovy"
-//    implementation("io.micronaut.groovy:micronaut-runtime-groovy")
+    compileOnly "io.micronaut:micronaut-inject-groovy"
+    implementation 'org.grails.plugins:views-json:2.3.2'
     runtimeOnly 'mysql:mysql-connector-java:8.0.30'
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     implementation "org.springframework.boot:spring-boot-starter-logging"
     implementation "org.springframework.boot:spring-boot-autoconfigure"
+    implementation "org.springframework.boot:spring-boot-starter-validation"
     implementation "org.grails:grails-core"
     implementation "org.springframework.boot:spring-boot-starter-actuator"
     implementation "org.springframework.boot:spring-boot-starter-tomcat"
@@ -88,15 +90,16 @@ dependencies {
     implementation "org.grails:grails-datastore-rest-client:6.1.12.RELEASE"
 //    implementation 'org.grails:grails-datastore-rest-client:6.1.12.BUILD-SNAPSHOT'
 //    implementation "com.google.android.gcm:gcm-server:1.0.2"
-
-//    testImplementation "io.micronaut:micronaut-inject-groovy"
     console "org.grails:grails-console"
     profile "org.grails.profiles:web"
-    runtimeOnly 'org.glassfish.web:el-impl:2.2'
+    runtimeOnly "org.glassfish.web:el-impl:2.2.1-b05"
+//    runtimeOnly 'org.glassfish.web:el-impl:2.2'
     runtimeOnly "com.h2database:h2"
     runtimeOnly "org.apache.tomcat:tomcat-jdbc"
     runtimeOnly 'javax.xml.bind:jaxb-api:2.3.1'
     runtimeOnly 'com.bertramlabs.plugins:asset-pipeline-grails:3.4.6'
+    testImplementation "org.springframework.boot:spring-boot-starter-tomcat"
+    testImplementation "io.micronaut:micronaut-inject-groovy"
     testImplementation "org.grails:grails-gorm-testing-support"
     testImplementation "org.mockito:mockito-core"
     testImplementation "org.grails:grails-web-testing-support"
@@ -106,8 +109,6 @@ dependencies {
     testImplementation "org.seleniumhq.selenium:selenium-support:3.14.0"
     testRuntimeOnly "org.seleniumhq.selenium:selenium-chrome-driver:3.14.0"
     testRuntimeOnly "org.seleniumhq.selenium:selenium-firefox-driver:3.14.0"
-    testImplementation "io.micronaut:micronaut-http-client"
-
 }
 
 bootRun {
@@ -130,6 +131,26 @@ assets {
 webdriverBinaries {
     chromedriver '2.45.0'
     geckodriver '0.24.0'
+}
+
+tasks.withType(GroovyCompile) {
+    configure(groovyOptions) {
+        forkOptions.jvmArgs = ['-Xmx1024m']
+    }
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}
+
+webdriverBinaries {
+    if (!System.getenv().containsKey('GITHUB_ACTIONS')) {
+        chromedriver {
+            version = '2.45.0'
+            fallbackTo32Bit = true
+        }
+        geckodriver '0.30.0'
+    }
 }
 
 tasks.withType(Test) {

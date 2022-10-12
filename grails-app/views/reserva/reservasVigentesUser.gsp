@@ -101,6 +101,17 @@
                 }
             });
         });
+
+        <g:if test="${flash.message}">
+        $(document).ready( function () {
+            toastr.success("${flash.message}");
+        });
+        </g:if>
+        <g:if test="${flash.error}">
+        $(document).ready( function () {
+            toastr.warning("${flash.error}");
+        });
+        </g:if>
     </script>
     </body>
 </html>
