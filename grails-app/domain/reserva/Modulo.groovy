@@ -56,4 +56,8 @@ class Modulo {
             return totalComisionNueva > old ? totalComisionNueva - old : 0
         }catch(e){}
     }
+
+    String getHorarioModulo(){
+        return horaInicio + " a " + horaTermino
+    }
 }

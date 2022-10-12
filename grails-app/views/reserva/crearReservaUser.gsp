@@ -47,7 +47,6 @@
                                 <g:hiddenField name="moduloId" id="moduloId" value=""/>
                                 <g:hiddenField name="espacioId" id="espacioId" value="${espacio?.id}"/>
                                 <g:hiddenField name="fechaReservaHidden" id="fechaReservaHidden" value=""/>
-%{--                                <g:set var="fechaReservaValue" id="fechaReservaHidden" value=""/>--}%
                                 <div class="panel-container show">
                                     <div class="panel-content">
                                         <table class="table">

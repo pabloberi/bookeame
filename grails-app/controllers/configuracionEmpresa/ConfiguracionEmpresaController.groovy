@@ -122,7 +122,7 @@ class ConfiguracionEmpresaController {
                 configuracionEmpresa  =  ConfiguracionEmpresa.findByEmpresa(empresa)
                 FlowEmpresa flowEmpresa = FlowEmpresa.findByEmpresa(empresa)
                 if( configuracionEmpresa ){
-                    respond configuracionEmpresa, model: [flowEmpresa: flowEmpresa]
+                    respond configuracionEmpresa, model: [flowEmpresa: flowEmpresa, comisionList: Comision.list()]
                 }else{
                     redirect(controller: 'home', action: 'dashboard')
                 }
@@ -135,10 +135,9 @@ class ConfiguracionEmpresaController {
     }
 
     @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
-    def guardarConfiguracionEmpresa(Long id){
+    def guardarConfiguracionFormaPago(Long id){
         boolean exito = true
         ConfiguracionEmpresa conf = ConfiguracionEmpresa.findById(id)
-        conf?.diasAMostrar = params?.diasAMostrar.toInteger()
         conf?.tipoPago?.prepago = params?.prepago == "on" ? true : false
         conf?.tipoPago?.pospago = params?.pospago == "on" ? true : false
 
@@ -170,6 +169,31 @@ class ConfiguracionEmpresaController {
         }
         redirect(controller: 'configuracionEmpresa', action: 'configuracionEmpresa')
     }
+
+    @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
+    def guardarConfiguracionReserva(Long id){
+        boolean exito = true
+        ConfiguracionEmpresa conf = ConfiguracionEmpresa.findById(id)
+        try{
+            conf.diasAMostrar = params?.diasAMostrar?.toInteger()
+            if(params?.periodoCambioReserva){
+                conf.periodoCambioReserva = params?.periodoCambioReserva?.toInteger()
+            }
+            conf.permitirCancelar = params?.permitirCancelar == "on" ? true : false
+            conf.permitirReagendar = params?.permitirReagendar == "on" ? true : false
+
+            configuracionEmpresaService.save(conf)
+        }catch(e){
+            exito = false
+            flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
+        }
+        if( exito){
+            flash.message = "Configuración guardada con éxito!"
+        }
+        redirect(controller: 'configuracionEmpresa', action: 'configuracionEmpresa')
+    }
+
+
 
     Boolean validarKeys(String apiKey, String secretKey){
         if( apiKey && secretKey){
