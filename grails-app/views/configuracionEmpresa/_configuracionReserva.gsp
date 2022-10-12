@@ -20,14 +20,14 @@
                 <div class="input-group-text">
                     <div class="custom-control d-flex custom-switch">
                         <input id="permitirCancelar" type="checkbox" class="custom-control-input" name="permitirCancelar"
-                               <%if(configuracionEmpresa?.permitirCancelar) {%>checked=""<%}%> >
+                               <%if(configuracionEmpresa?.permitirCancelar) {%>checked=""<%}%>  onchange="inhabilitarAnticipo();">
                         <label class="custom-control-label fw-500" for="permitirCancelar">Cancelar reservas</label>
                     </div>
                 </div>
                 <div class="input-group-text">
                     <div class="custom-control d-flex custom-switch">
                         <input id="permitirReagendar" type="checkbox" class="custom-control-input" name="permitirReagendar"
-                               <%if(configuracionEmpresa?.permitirReagendar) {%>checked=""<%}%> >
+                               <%if(configuracionEmpresa?.permitirReagendar) {%>checked=""<%}%> onchange="inhabilitarAnticipo();">
                         <label class="custom-control-label fw-500" for="permitirReagendar">Reagendar reservas</label>
                     </div>
                 </div>
@@ -46,3 +46,17 @@
     </div>
     <br><br>
 </g:form>
+<script>
+    function inhabilitarAnticipo(){
+        var input = document.getElementById("periodoCambioReserva");
+        if( $('#permitirReagendar').prop('checked') || $('#permitirCancelar').prop('checked') ){
+            input.disabled = false;
+        }else{
+            input.disabled = true;
+        }
+        // if( ! $('#permitirReagendar').prop('checked') || !$('#permitirCancelar').prop('checked') ){
+        //     $('$#periodoCambioReserva').attr('disable', true)
+        // }
+    }
+</script>
+
