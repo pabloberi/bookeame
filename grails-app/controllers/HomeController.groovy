@@ -8,10 +8,10 @@ import evaluacion.EvaluacionToUser
 import grails.converters.JSON
 import groovy.json.JsonSlurper
 import reserva.Reserva
-import ubicación.Comuna
-import ubicación.Provincia
-import ubicación.Region
-import ubicación.UbicacionUser
+import ubicacion.Comuna
+import ubicacion.Provincia
+import ubicacion.Region
+import ubicacion.UbicacionUser
 import grails.plugin.springsecurity.annotation.Secured
 
 import java.lang.reflect.Array
@@ -443,5 +443,35 @@ class HomeController {
     }
 
     def testqr(){}
+
+    @Secured(['ROLE_USER'])
+    def cargarDireccion(boolean valor){
+        boolean exito = false
+        User user  = springSecurityService.getCurrentUser()
+        UbicacionUser ubicacionUser = UbicacionUser.findByUsuarioAndEnUso(user, true)
+        exito = ubicacionUser ? true : false
+        if (valor){
+            if (exito){
+                render g.select(id:'region', name: 'region', required: 'required', multiple: "", from: Region.list() , optionKey: 'id', class: "form-control select2", style:"width: 100%;",value: ubicacionUser?.region?.id )
+            }else{
+                render g.select(id:'region',name:'region', required:'required',style:"width: 100%;",optionKey:'id',from:Region.list(), noSelection:['':'- Seleccione Región-'] )
+            }
+        }else{
+            List<Comuna> comunaList = []
+            Region region =  Region.findById(ubicacionUser?.region?.id)
+            List<Provincia> provinciaList =  Provincia.findAllByRegion(region)
+
+            for( provincia in  provinciaList ){
+                comunaList.addAll( Comuna.findAllByProvincia(provincia) )
+            }
+            if (exito){
+                render g.select(id: 'comuna', name: 'comuna',required: 'required', multiple: "", from: comunaList , optionKey: 'id', class: "form-control select2", style:"width: 100%; ", value: ubicacionUser?.comuna?.id)
+            }else{
+                render g.select(id: 'comuna', name: 'comuna',required: 'required', multiple: "", from: comunaList.sort { it?.comuna } , optionKey: 'id', noSelection: ['':'--'], class: "form-control select2", style:"width: 100%;" )
+
+            }
+        }
+    }
+
 
 }

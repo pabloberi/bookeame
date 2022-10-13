@@ -7,9 +7,9 @@ import reserva.Dia
 import reserva.Modulo
 import grails.plugin.springsecurity.annotation.Secured
 import grails.validation.ValidationException
-import ubicación.Comuna
-import ubicación.Provincia
-import ubicación.Region
+import ubicacion.Comuna
+import ubicacion.Provincia
+import ubicacion.Region
 
 import static org.springframework.http.HttpStatus.*
 
