@@ -1,4 +1,4 @@
-package ubicación
+package ubicacion
 
 import grails.gorm.services.Service
 

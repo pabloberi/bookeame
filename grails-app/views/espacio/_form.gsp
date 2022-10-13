@@ -1,4 +1,4 @@
-<%@ page import="espacio.Categoria; ubicación.Comuna; ubicación.Region; gestion.General; espacio.TipoEspacio" %>
+<%@ page import="espacio.Categoria; ubicacion.Comuna; ubicacion.Region; gestion.General; espacio.TipoEspacio" %>
 <asset:stylesheet src="/formplugins/select2/select2.bundle.css"/>
 <div id="panel-7" class="panel">
 	<div class="panel-hdr">

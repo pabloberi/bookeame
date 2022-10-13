@@ -2,7 +2,7 @@ package espacio
 
 import empresa.Empresa
 import reserva.Modulo
-import ubicación.Comuna
+import ubicacion.Comuna
 
 class Espacio {
 

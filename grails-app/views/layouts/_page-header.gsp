@@ -1,4 +1,4 @@
-<%@ page import="gestion.General; ubicación.UbicacionUser; espacio.TipoEspacio; auth.User;" %>
+<%@ page import="gestion.General; ubicacion.UbicacionUser; espacio.TipoEspacio; auth.User;" %>
 <!-- BEGIN Page Header -->
 <header class="page-header" role="banner">
     <!-- we need this logo when user switches to nav-function-top -->
@@ -73,7 +73,7 @@
         </div>
 %{--        <sec:ifAnyGranted roles="ROLE_USER">--}%
 
-%{--            <a href="javascript: verUbicacion();" class="header-icon" title="Mi ubicación actual">--}%
+%{--            <a href="javascript: verUbicacion();" class="header-icon" title="Mi ubicacion actual">--}%
 %{--                <i class="fal fa-map"></i>--}%
 %{--            </a>--}%
 %{--            <% UbicacionUser ubicacionUser = UbicacionUser.findByUsuarioAndEnUso(user, true) %>--}%
@@ -228,12 +228,12 @@
                     <span data-i18n="drpdwn.settings">Configuraciones</span>
                 </a>
                 </sec:ifAnyGranted>
-%{--                <sec:ifAnyGranted roles="ROLE_USER">--}%
-%{--                    <div class="dropdown-divider m-0"></div>--}%
-%{--                    <a href="${createLink(controller: 'ubicacionUser', action: 'create')}" class="dropdown-item">--}%
-%{--                        <span data-i18n="drpdwn.settings">Mi ubicación</span>--}%
-%{--                    </a>--}%
-%{--                </sec:ifAnyGranted>--}%
+                <sec:ifAnyGranted roles="ROLE_USER">
+                    <div class="dropdown-divider m-0"></div>
+                    <a href="${createLink(controller: 'ubicacionUser', action: 'index')}" class="dropdown-item">
+                        <span data-i18n="drpdwn.settings">Mis direcciones</span>
+                    </a>
+                </sec:ifAnyGranted>
 
                 <div class="dropdown-divider m-0 hidden-sm-down"></div>
 
