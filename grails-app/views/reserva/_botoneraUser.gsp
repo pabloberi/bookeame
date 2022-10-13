@@ -10,7 +10,7 @@
                 </div>
             </g:if>
             <g:if test="${ puedeReagendar }">
-                <div class="col-md-5">
+                <div class="col-md-5" style="color: white;">
                     <a   data-toggle="modal" data-target="#modalReagendar"
                          class="btn btn-info btn-block btn-md mt-3" title="Reagendar">
                         Reagendar Reserva

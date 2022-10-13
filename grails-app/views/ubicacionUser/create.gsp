@@ -17,7 +17,6 @@
     <g:form method="POST" controller="ubicacionUser" action="guardarUbicacionUser">
         <g:render template="form"/>
     </g:form>
-    <g:render template="tablaUbicaciones" model="[ubicacionUserList: ubicacionUserList]"/>
 
 </body>
 </html>

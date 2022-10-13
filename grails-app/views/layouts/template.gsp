@@ -1,4 +1,4 @@
-<%@ page import="gestion.General; ubicación.UbicacionUser; auth.User" %>
+<%@ page import="gestion.General; ubicacion.UbicacionUser; auth.User" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>

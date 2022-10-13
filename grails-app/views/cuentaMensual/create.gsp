@@ -1,4 +1,4 @@
-<%@ page import="ubicación.Region; empresa.Empresa" %>
+<%@ page import="ubicacion.Region; empresa.Empresa" %>
 <!DOCTYPE html>
 <html>
 <head>

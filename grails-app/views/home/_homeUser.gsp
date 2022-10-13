@@ -1,4 +1,4 @@
-<%@ page import="auth.User; espacio.Categoria; ubicación.Comuna; ubicación.Region; espacio.TipoEspacio" %>
+<%@ page import="auth.User; espacio.Categoria; ubicacion.Comuna; ubicacion.Region; espacio.TipoEspacio" %>
 <!DOCTYPE html>
 <asset:stylesheet src="/formplugins/select2/select2.bundle.css"/>
 
@@ -84,6 +84,21 @@
 <script>
 
     $('.select2').select2();
+    $(document).ready(function () {
+        $.ajax({
+            type:'POST',
+            url:'${g.createLink(controller: 'home', action: 'cargarDireccion')}',
+            data:{valor:true},
+            success:function(data,textStatus){$('#region').html(data);},error:function(XMLHttpRequest,textStatus,errorThrown){}});
+
+        $.ajax({
+            type:'POST',
+            url:'${g.createLink(controller: 'home', action: 'cargarDireccion')}',
+            data:{valor:false},
+            success:function(data,textStatus){$('#comuna').html(data);},error:function(XMLHttpRequest,textStatus,errorThrown){}});
+
+    });
+
     function filtrarTipoEspacio() {
         var tipo = document.getElementById("tipoEspacio").value;
         console.log(tipo)

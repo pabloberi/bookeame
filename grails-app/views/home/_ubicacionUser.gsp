@@ -3,14 +3,14 @@
 %{--    <div class="modal-dialog modal-lg">--}%
 %{--        <div class="modal-content">--}%
 %{--            <div class="modal-header">--}%
-%{--                <h4 class="modal-title">Mi ubicación</h4>--}%
+%{--                <h4 class="modal-title">Mi ubicacion</h4>--}%
 %{--                <button type="button" class="close" data-dismiss="modal" aria-label="Close">--}%
 %{--                    <span aria-hidden="true"><i class="fal fa-times"></i></span>--}%
 %{--                </button>--}%
 %{--            </div>--}%
 %{--            <div class="modal-body">--}%
 %{--                <div class="alert alert-warning" role="alert">--}%
-%{--                    <strong>Información.</strong> Hemos obtenido la ubicación desde tu dispositivo, ya que no tienes registros en tu libreta de direcciones. ¿Es correcta?--}%
+%{--                    <strong>Información.</strong> Hemos obtenido la ubicacion desde tu dispositivo, ya que no tienes registros en tu libreta de direcciones. ¿Es correcta?--}%
 %{--                </div>--}%
 %{--                <br>--}%
 %{--                <div class="container">--}%
