@@ -1,5 +1,6 @@
 import auth.User
 import configuracionEmpresa.ConfiguracionEmpresa
+import empresa.Empresa
 import espacio.Espacio
 import grails.gorm.transactions.Transactional
 import reserva.Modulo
@@ -54,11 +55,13 @@ class ValidadorPermisosUtilService {
     }
     // FIN PERMISOS DE USUARIOS
 
-    Boolean esRoleUser(User user){
+    Boolean esRoleUser(){
+        User user = springSecurityService.getCurrentUser()
         return user.authorities.findAll().find { it -> it.authority == "ROLE_USER" }
     }
 
-    Boolean esRoleAdmin(User user){
+    Boolean esRoleAdmin(){
+        User user = springSecurityService.getCurrentUser()
         return user.authorities.findAll().find { it -> it.authority == "ROLE_ADMIN" }
     }
 
@@ -102,7 +105,25 @@ class ValidadorPermisosUtilService {
             }
         }catch(e){ return false }
     }
+
+    Boolean validarRelacionEspacioUser(Long espacioId){
+        Espacio espacio = Espacio.findById(espacioId)
+        User user = springSecurityService.getCurrentUser()
+
+        if( espacio && user ){
+            Empresa empresa = Empresa.findByUsuario(user)
+            if( empresa?.id == espacio?.empresaId ){
+                return true
+            }else{
+                return false
+            }
+        }else{
+            return false
+        }
+    }
     // FIN VALIDACION DE RELACIONES
+
+
 
 
 }
