@@ -219,16 +219,14 @@
             eventClick:  function(info) {
                 <sec:ifAnyGranted roles="ROLE_USER">
                     if(info.event.title === 'Disponible'){
-                        var params = "fecha=" + info.event.extendedProps.fechaReserva +
-                        "&moduloId=" + info.event.extendedProps.modulo + "&espacioId=${espacio?.id}" ;
-                        window.location.href = "${createLink(controller: 'reserva', action: 'create' )}?" +params ;
+                        var params = "fecha=" + info.event.extendedProps.fechaReserva + "&moduloId=" + info.event.extendedProps.modulo;
+                        window.location.href = "${createLink(controller: 'reserva', action: 'create', id: espacio?.id)}?" +params ;
                     }
                 </sec:ifAnyGranted>
                 <sec:ifAnyGranted roles="ROLE_ADMIN">
                     if(info.event.title === 'Disponible'){
-                        var params = "fecha=" + info.event.extendedProps.fechaReserva +
-                            "&moduloId=" + info.event.extendedProps.modulo + "&espacioId=${espacio?.id}";
-                        window.location.href = "${createLink(controller: 'reserva', action: 'create' )}?" +params ;
+                        var params = "fecha=" + info.event.extendedProps.fechaReserva + "&moduloId=" + info.event.extendedProps.modulo;
+                        window.location.href = "${createLink(controller: 'reserva', action: 'create', id: espacio?.id)}?" +params ;
                     }else{
                         if( info.event.title=== 'Reservado' ){
                             $('#calendarModal .modal-title .js-event-title').text(info.event.title);

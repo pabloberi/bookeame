@@ -107,7 +107,7 @@
                             <g:if test="${pospago  && session['link'] == null}">
                                 <div class="col-md-5 ">
                                     <button onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" name="tipoReservaId"
-                                            id="reservaPospago" type="submit" class="btn btn-secondary btn-block btn-md mt-3" value="2" >
+                                            id="reservaPospago" type="submit" class="btn btn-secondary btn-block btn-md mt-3" value="1" >
                                         Pago Presencial
                                     </button>
                                 </div>

@@ -1,8 +1,10 @@
 package reserva
 import auth.User
+import com.sun.org.apache.xpath.internal.operations.Bool
 import configuracionEmpresa.ConfiguracionEmpresa
 import dto.CrearReservaRs
 import dto.EventoCalendario
+import empresa.Empresa
 import espacio.Espacio
 import gestion.General
 import gestion.NotificationService
@@ -69,7 +71,7 @@ class ReservaUtilService {
         List<EventoCalendario> eventoList = []
         Espacio espacio = Espacio.findById(id)
         ConfiguracionEmpresa conf = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
-        String rol = validadorPermisosUtilService?.esRoleUser() ? "USER" : "ADMIN"
+        String rol = validadorPermisosUtilService?.esRoleAdmin() ? "ADMIN" : "USER"
         try{
             if( validadorPermisosUtilService?.validarRelacionEspacioUser(id) || rol == "USER" ) {
                 List<Modulo> moduloList
@@ -87,8 +89,12 @@ class ReservaUtilService {
                     for( int i = 0; i < moduloList?.size(); i++){
                         for( int j = 0; j < dateList?.size(); j++){
                             if( moduloList[i]?.dias.getProperty(dateList[j][1]) ){
-                                if(!reservaList.find{ it -> it?.horaInicio == moduloList[i]?.horaInicio && it?.horaTermino == moduloList[i]?.horaTermino && it?.fechaReserva == dateList[j][2] } ){
-                                    eventoList.add(moduloEventoConverter(moduloList[i], dateList[j]))
+                                if(!reservaList.find{ it ->
+                                    it?.horaInicio == moduloList[i]?.horaInicio
+                                            && it?.horaTermino == moduloList[i]?.horaTermino
+                                            && it?.fechaReserva == dateList[j][2] } && esFechaValida( moduloList[i], dateList[j][0] )
+                                ){
+                                    eventoList.add( moduloEventoConverter(moduloList[i], dateList[j]) )
                                 }
                             }
                         }
@@ -239,6 +245,7 @@ class ReservaUtilService {
         CrearReservaRs crearReservaRs = new CrearReservaRs()
         try{
             Espacio espacio = Espacio.get( params?.espacioId?.toLong() )
+            ConfiguracionEmpresa conf = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
             Modulo modulo = Modulo.get( params?.moduloId?.toLong() )
             def fecha = formatoFechaUtilService?.stringToDateConverter(params?.fechaReserva, "dd-MM-yyyy")
             def fechaString = formatoFechaUtilService.formatFecha(fecha,"dd-MM-yyyy")
@@ -247,7 +254,7 @@ class ReservaUtilService {
                     espacio?.id, fechaString, params?.code ) && reservaDisponible(modulo, fechaString)  ){
                 User user = springSecurityService.getCurrentUser()
 
-                if( params?.tipoReservaId == "1" ){
+                if( params?.tipoReservaId == "1" && conf?.tipoPago?.pospago ){
                     if( validadorPermisosUtilService.esRoleUser() && reservaPosPagoValidar(user) ){
                         Reserva reserva = new Reserva(
                                 horaInicio: modulo?.horaInicio,
@@ -264,7 +271,6 @@ class ReservaUtilService {
                         crearReservaRs.setCodigo("0")
                         crearReservaRs.setMensaje("Reserva Creada Exitosamente!")
                         crearReservaRs.setReservaId(reserva?.id)
-                        log.error("Ha ocurrido un error inesperado")
                     }else{
                         crearReservaRs.setCodigo("01")
                         crearReservaRs.setMensaje("Has superado la cantidad máxima de reservas Pos Pago vigentes.")
@@ -282,7 +288,7 @@ class ReservaUtilService {
             crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
             log.error("Ha ocurrido un error inesperado")
         }
-        return response
+        return crearReservaRs
     }
 
     def reservaDisponible(Modulo modulo, String fecha){
@@ -363,7 +369,19 @@ class ReservaUtilService {
             return false
         }
     }
-    
+
+    Boolean esFechaValida(Modulo modulo, String date){
+        try{
+            Date fechaModulo = formatoFechaUtilService?.stringToDateConverter(date + " ${modulo?.horaInicio}:00", "yyyy-MM-dd HH:mm:ss")
+            if( fechaModulo > new Date() ){
+                return true
+            }
+            return false
+        }catch(e){
+            throw new Exception()
+        }
+        return false
+    }
 
     //ENCRIPTACION
     Boolean validarDatosParaReserva(String horaInicio, String horaTermino, Long valor, Long espacio,

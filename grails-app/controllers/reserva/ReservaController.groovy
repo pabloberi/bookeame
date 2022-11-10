@@ -91,10 +91,10 @@ class ReservaController {
         respond espacio, model: [eventoList: eventoList]
     }
 
-    def create(String fecha, String moduloId, String espacioId) {
+    def create(String fecha, String moduloId, Long id) {
         try{
-            if( reservaUtilService?.puedeCrearReserva(moduloId?.toLong(), espacioId?.toLong(), fecha) ){
-                Espacio espacio = Espacio.get( espacioId?.toLong() )
+            if( reservaUtilService?.puedeCrearReserva(moduloId?.toLong(), id, fecha) ){
+                Espacio espacio = Espacio.get( id )
                 Modulo modulo = Modulo.get( moduloId?.toLong() )
                 ConfiguracionEmpresa configuracion = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
                 Date fechaCompleta = formatoFechaUtilService?.stringToDateConverter( fecha, "dd-MM-yyyy" )
@@ -108,10 +108,12 @@ class ReservaController {
                 ]
             }else{
                 flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
+                render view: '/error'
             }
         }catch(e){
             log.error(e)
             flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
+            render view: '/error'
         }
     }
 
@@ -120,13 +122,15 @@ class ReservaController {
             CrearReservaRs crearReservaRs = reservaUtilService.crearReserva( params )
             if( crearReservaRs.getCodigo() == "0" ){
                 flash.message = crearReservaRs.getMensaje()
-                redirect(controller: 'reserva', action: 'show' )
+                redirect( controller: 'reserva', action: 'show', id: crearReservaRs.getReservaId() )
             }else{
-               flash.error = crearReservaRs.getMensaje()
+                flash.error = crearReservaRs.getMensaje()
+                redirect(controller: 'home', action: 'dashboard')
             }
         }catch(e){
             flash.error = "Ha ocurrido un error inesperado."
             log.error("Ha ocurrido un error inesperado.")
+            redirect(controller: 'home', action: 'dashboard')
         }
 
     }
