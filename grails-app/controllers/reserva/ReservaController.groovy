@@ -282,15 +282,9 @@ class ReservaController {
     def reservasVigentesAdmin(){
         User user = springSecurityService.getCurrentUser()
         List<Reserva> reservaList = []
-//        Empresa empresa  = Empresa.findByUsuario(user)
-//        List<Espacio> espacioList = Espacio.findAllByEmpresa(empresa)
         Date hoy = new Date()
         Calendar c = Calendar.getInstance()
         c.setTime(hoy)
-//        c.set(Calendar.MILLISECOND, 0)
-//        c.set(Calendar.SECOND, 0)
-//        c.set(Calendar.MINUTE, 0)
-//        c.set(Calendar.HOUR_OF_DAY, 0)
         try{
             reservaList = Reserva.createCriteria().list {
                 and{
@@ -315,16 +309,9 @@ class ReservaController {
     def reservasHistoricasAdmin(){
         User user = springSecurityService.getCurrentUser()
         List<Reserva> reservaList = []
-//        Empresa empresa  = Empresa.findByUsuario(user)
-//        List<Espacio> espacioList = Espacio.findAllByEmpresa(empresa)
         Date hoy = new Date()
         Calendar c = Calendar.getInstance()
         c.setTime(hoy)
-//        c.set(Calendar.MILLISECOND, 0)
-//        c.set(Calendar.SECOND, 0)
-//        c.set(Calendar.MINUTE, 0)
-//        c.set(Calendar.HOUR_OF_DAY, 0)
-//        c.add(Calendar.DAY_OF_MONTH, -1)
         def today = c.getTime()
         c.add(Calendar.MONTH, -2 )
         def twoMonthAgo = c.getTime()
@@ -355,10 +342,6 @@ class ReservaController {
         Date hoy = new Date()
         Calendar c = Calendar.getInstance()
         c.setTime(hoy)
-//        c.set(Calendar.MILLISECOND, 0)
-//        c.set(Calendar.SECOND, 0)
-//        c.set(Calendar.MINUTE, 0)
-//        c.set(Calendar.HOUR_OF_DAY, 0)
         try {
             reservaList = Reserva.createCriteria().list {
                 and{
@@ -383,11 +366,6 @@ class ReservaController {
         Date hoy = new Date()
         Calendar c = Calendar.getInstance()
         c.setTime(hoy)
-//        c.set(Calendar.MILLISECOND, 0)
-//        c.set(Calendar.SECOND, 0)
-//        c.set(Calendar.MINUTE, 0)
-//        c.set(Calendar.HOUR_OF_DAY, 0)
-//        c.add(Calendar.DAY_OF_MONTH, -1)
         def today = c.getTime()
         c.add(Calendar.MONTH, -2 )
         def twoMonthAgo = c.getTime()
