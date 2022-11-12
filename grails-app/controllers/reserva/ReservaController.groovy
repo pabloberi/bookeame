@@ -1385,7 +1385,9 @@ class ReservaController {
                 if( validadorPermisosUtilService?.userPuedeReagendarReserva(reserva,configuracionEmpresa)
                     && validadorPermisosUtilService?.validarRelacionReservaUser(reserva?.id)
                     && validadorPermisosUtilService?.validarRelacionEspacioModulo(modulo, reserva?.espacio)
-                    && validadorPermisosUtilService?.validarRelacionModuloFecha(modulo, sdf.parse(params?.fechaReagendar)) ){
+                    && validadorPermisosUtilService?.validarRelacionModuloFecha(modulo, sdf.parse(params?.fechaReagendar))
+                    && reservaDisponible(modulo, params?.fechaReagendar)
+                ){
 
                     reserva.horaInicio = modulo?.horaInicio
                     reserva.horaTermino = modulo?.horaTermino
