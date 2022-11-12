@@ -26,10 +26,15 @@ class ValidadorPermisosUtilService {
 
     Boolean userPuedeReagendarReserva(Reserva reserva, ConfiguracionEmpresa configuracion){
         boolean permiso = false
+        User user = springSecurityService.getCurrentUser()
         if( reserva && configuracion ){
-            // VALIDA SI TIENE PERMISO PARA CANCELAR Y SI ESTA DENTRO DEL PLAZO
-            if( configuracion?.permitirReagendar && cumpleConPeriodoAnticpacion(reserva?.inicioExacto, configuracion?.periodoCambioReserva ) ){
-                permiso = true
+            if( esRoleAdmin(user) ){
+                return true
+            }else{
+                // VALIDA SI TIENE PERMISO PARA REAGENDAR Y SI ESTA DENTRO DEL PLAZO
+                if( configuracion?.permitirReagendar && cumpleConPeriodoAnticpacion(reserva?.inicioExacto, configuracion?.periodoCambioReserva ) ){
+                    permiso = true
+                }
             }
         }
         return permiso
