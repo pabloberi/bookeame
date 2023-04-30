@@ -1,5 +1,6 @@
 package reserva
 import auth.User
+import auth.UserService
 import com.sun.org.apache.xpath.internal.operations.Bool
 import configuracionEmpresa.ConfiguracionEmpresa
 import dto.CrearReservaRs
@@ -33,6 +34,7 @@ class ReservaUtilService {
     def validadorPermisosUtilService
     def formatoFechaUtilService
     def springSecurityService
+    UserService userService
 
     Boolean eliminarReserva(Long id) {
         Boolean responseEliminar = false
@@ -83,20 +85,13 @@ class ReservaUtilService {
                     dateList = obteneFechaList(conf?.diasAMostrar ?: 7)
                     reservaList = obtenerReservas(espacio, rol)
 
-                    for (reserva in reservaList ){
-                        eventoList.add( reservaEventoCoverter(reserva) )
-                    }
-                    for( int i = 0; i < moduloList?.size(); i++){
-                        for( int j = 0; j < dateList?.size(); j++){
-                            if( moduloList[i]?.dias.getProperty(dateList[j][1]) ){
-                                if(!reservaList.find{ it ->
-                                    it?.horaInicio == moduloList[i]?.horaInicio
-                                            && it?.horaTermino == moduloList[i]?.horaTermino
-                                            && it?.fechaReserva == dateList[j][2] } && esFechaValida( moduloList[i], dateList[j][0] )
-                                ){
-                                    eventoList.add( moduloEventoConverter(moduloList[i], dateList[j]) )
-                                }
-                            }
+                    eventoList.addAll(
+                            obtenerModulosDispónibles(reservaList, moduloList, dateList)
+                    )
+
+                    if( rol == "ADMIN"){
+                        for (reserva in reservaList ){
+                            eventoList.add( reservaEventoConverter(reserva) )
                         }
                     }
                 }
@@ -105,6 +100,24 @@ class ReservaUtilService {
             log.error(e)
         }
 
+        return eventoList
+    }
+
+    def obtenerModulosDispónibles(List<Reserva> reservaList, List<Modulo> moduloList, def dateList){
+        List<EventoCalendario> eventoList = []
+        for( int i = 0; i < moduloList?.size(); i++){
+            for( int j = 0; j < dateList?.size(); j++){
+                if( moduloList[i]?.dias.getProperty(dateList[j][1]) ){
+                    if(!reservaList.find{ it ->
+                        it?.horaInicio == moduloList[i]?.horaInicio
+                                && it?.horaTermino == moduloList[i]?.horaTermino
+                                && it?.fechaReserva == dateList[j][2] } && esFechaValida( moduloList[i], dateList[j][0] )
+                    ){
+                        eventoList.add( moduloEventoConverter(moduloList[i], dateList[j]) )
+                    }
+                }
+            }
+        }
         return eventoList
     }
 
@@ -174,7 +187,7 @@ class ReservaUtilService {
         return reservaList
     }
 
-    EventoCalendario reservaEventoCoverter(Reserva reserva){
+    EventoCalendario reservaEventoConverter(Reserva reserva){
         EventoCalendario evento = new EventoCalendario()
         try{
             evento.setReservaId(reserva?.id)
@@ -241,8 +254,10 @@ class ReservaUtilService {
         return response
     }
 
-    def crearReserva(def params){
+    def crearReserva(def params, Long tipoReservaId){
         CrearReservaRs crearReservaRs = new CrearReservaRs()
+        crearReservaRs.setCodigo("01")
+        crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
         try{
             Espacio espacio = Espacio.get( params?.espacioId?.toLong() )
             ConfiguracionEmpresa conf = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
@@ -252,41 +267,98 @@ class ReservaUtilService {
 
             if( validarDatosParaReserva( modulo?.horaInicio, modulo?.horaTermino, modulo?.valor,
                     espacio?.id, fechaString, params?.code ) && reservaDisponible(modulo, fechaString)  ){
-                User user = springSecurityService.getCurrentUser()
-
-                if( params?.tipoReservaId == "1" && conf?.tipoPago?.pospago ){
-                    if( validadorPermisosUtilService.esRoleUser() && reservaPosPagoValidar(user) ){
-                        Reserva reserva = new Reserva(
-                                horaInicio: modulo?.horaInicio,
-                                horaTermino: modulo?.horaTermino,
-                                fechaReserva: fecha,
-                                valor: modulo?.valor,
-                                espacio: espacio,
-                                tipoReserva: TipoReserva.findById(1),
-                                estadoReserva: EstadoReserva.findById(1),
-                                usuario: user
-                        )
-                        reservaService.save(reserva)
-                        notificationService.sendPushNotification(reserva?.espacio?.empresa?.usuarioId, "Solicitud de reserva", "Tienes una solicitud de reserva pospago.")
-                        crearReservaRs.setCodigo("0")
-                        crearReservaRs.setMensaje("Reserva Creada Exitosamente!")
-                        crearReservaRs.setReservaId(reserva?.id)
-                    }else{
-                        crearReservaRs.setCodigo("01")
-                        crearReservaRs.setMensaje("Has superado la cantidad máxima de reservas Pos Pago vigentes.")
-                        log.error("Usuario superó la cantidad máxima de reservas Pos Pago vigentes")
-                    }
+                if( validadorPermisosUtilService.esRoleUser() ){
+                    return crearReservaUsuario( conf, modulo, espacio, fecha, tipoReservaId )
                 }
-
+                if( validadorPermisosUtilService.esRoleAdmin() ){
+                    User user = new User()
+                    if( params?.userId ){
+                        user =  User.get( params?.userId?.toLong() )
+                    }else{
+                        if( !User.findByEmail(params?.correo) ){
+                            user.nombre = params?.nombre
+                            user.email = params?.correo
+                            user.celular = params?.celular
+                            userService.save(user)
+                            String link = createLink( base:  General.findByNombre("baseUrl")?.valor, controller: 'user', action: 'registroInvitado', id: user?.id)
+                            String template = groovyPageRenderer.render(template:  "/correos/invitarUser", model: [user: user, link: link])
+                            utilService?.enviarCorreo(user?.email, "noresponder@bookeame.cl", "Termina tu registro y reserva fácil", template)
+                        }else{
+                            user = User.findByEmail(params?.correo)
+                        }
+                    }
+                    return crearReservaEmpresa( modulo, espacio, fecha, tipoReservaId, user )
+                }
             }else{
                 crearReservaRs.setCodigo("01")
                 crearReservaRs.setMensaje("Modulo no disponible")
                 log.error("Ha ocurrido un error inesperado")
             }
+
         }catch(e){
             crearReservaRs.setCodigo("01")
             crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
             log.error("Ha ocurrido un error inesperado")
+        }
+        return crearReservaRs
+    }
+
+    def crearReservaUsuario(ConfiguracionEmpresa conf, Modulo modulo, Espacio espacio, Date fecha, Long tipoReservaId){
+        CrearReservaRs crearReservaRs = new CrearReservaRs()
+        crearReservaRs.setCodigo("01")
+        crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
+        if( tipoReservaId == 1 && conf?.tipoPago?.pospago ){
+            User user = springSecurityService.getCurrentUser()
+            if( reservaPosPagoValidar(user) ){
+                Reserva reserva = new Reserva(
+                        horaInicio: modulo?.horaInicio,
+                        horaTermino: modulo?.horaTermino,
+                        fechaReserva: fecha,
+                        valor: modulo?.valor,
+                        espacio: espacio,
+                        tipoReserva: TipoReserva.findById(1),
+                        estadoReserva: EstadoReserva.findById(1),
+                        usuario: user
+                )
+                reservaService.save(reserva)
+                notificationService.sendPushNotification(reserva?.espacio?.empresa?.usuarioId, "Solicitud de reserva", "Tienes una solicitud de reserva pospago.")
+                String template = groovyPageRenderer.render(template:  "/correos/solicitudReservaUsuario", model: [reserva: reserva])
+                utilService?.enviarCorreo(reserva?.usuario?.email, "noresponder@bookeame.cl", "Solicitud de Reserva", template)
+                crearReservaRs.setCodigo("0")
+                crearReservaRs.setMensaje("Reserva Creada Exitosamente!")
+                crearReservaRs.setReservaId(reserva?.id)
+            }else{
+                crearReservaRs.setCodigo("01")
+                crearReservaRs.setMensaje("Has superado la cantidad máxima de reservas Pos Pago vigentes.")
+                log.error("Usuario superó la cantidad máxima de reservas Pos Pago vigentes")
+            }
+        }
+        // AQUI DEBERIA IR LOGICA PREPAGO
+        return crearReservaRs
+    }
+
+    def crearReservaEmpresa( Modulo modulo, Espacio espacio, Date fecha, Long tipoReservaId,User user){
+        CrearReservaRs crearReservaRs = new CrearReservaRs()
+        crearReservaRs.setCodigo("01")
+        crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
+        if( tipoReservaId == 3 ){
+            Reserva reserva = new Reserva(
+                    horaInicio: modulo?.horaInicio,
+                    horaTermino: modulo?.horaTermino,
+                    fechaReserva: fecha,
+                    valor: modulo?.valor,
+                    espacio: espacio,
+                    tipoReserva: TipoReserva.findById(3),
+                    estadoReserva: EstadoReserva.findById(2),
+                    usuario: user
+            )
+            reservaService.save(reserva)
+            notificationService.sendPushNotification(reserva?.usuarioId, "Reserva Creada", "Se ha creado una reserva a tu nombre.")
+            String template = groovyPageRenderer.render(template:  "/correos/confirmacionReservaUser", model: [reserva: reserva])
+            utilService?.enviarCorreo(reserva?.usuario?.email, "noresponder@bookeame.cl", "Confirmación de Reserva", template)
+            crearReservaRs.setCodigo("0")
+            crearReservaRs.setMensaje("Reserva Creada Exitosamente!")
+            crearReservaRs.setReservaId(reserva?.id)
         }
         return crearReservaRs
     }
@@ -363,6 +435,7 @@ class ReservaUtilService {
                 }
             }
         }
+        if( validadorPermisosUtilService?.esRoleAdmin() ){ return true }
         if( reservaList.size() < General.findByNombre('maximoPosPago')?.valor?.toInteger() ){
             return true
         }else{

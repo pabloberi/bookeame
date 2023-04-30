@@ -46,7 +46,7 @@
                                             <span style=" height: 15px; width: 15px; background-color: ${ espacio?.enabled ? '#319529' : '#CE2F08' }; border-radius: 50%; display: inline-block;"></span>
                                         </div>
                                         <div class="btn-group btn-group-sm" style="float: right;">
-                                            <a href="${createLink(controller: 'reserva', action: 'crearReservaManual', id: espacio?.id)}" class="btn btn-info btn-sm" title="Crear Reserva"><i class="fal fa-calendar-alt"></i></a>
+                                            <a href="${createLink(controller: 'reserva', action: 'calendario', id: espacio?.id)}" class="btn btn-info btn-sm" title="Crear Reserva"><i class="fal fa-calendar-alt"></i></a>
                                             <a href="${createLink(controller: 'espacio', action: 'modulos', id: espacio?.id)}" class="btn btn-secondary btn-sm" title="Módulos"><i class="fal fa-cog"></i></a>
                                         </div>
                                     </div>

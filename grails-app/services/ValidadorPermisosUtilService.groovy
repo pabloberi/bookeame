@@ -28,6 +28,7 @@ class ValidadorPermisosUtilService {
     Boolean userPuedeReagendarReserva(Reserva reserva, ConfiguracionEmpresa configuracion){
         boolean permiso = false
         if( reserva && configuracion ){
+            if( esRoleAdmin() ){ return true }
             // VALIDA SI TIENE PERMISO PARA CANCELAR Y SI ESTA DENTRO DEL PLAZO
             if( configuracion?.permitirReagendar && cumpleConPeriodoAnticpacion(reserva?.inicioExacto, configuracion?.periodoCambioReserva ) ){
                 permiso = true

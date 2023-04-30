@@ -19,103 +19,12 @@
                         <button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="Close"></button>
                     </div>
                 </div>
-                <g:form method="POST" controller="reserva" action="save" enctype="multipart/form-data" role="form"
-                        params="[fechaReserva: fechaReserva, code: token, moduloId: modulo?.id, espacioId: espacio?.id]">
-                    <div class="panel-container show">
-
-                        <div class="panel-content">
-                            <div class="form-group">
-                                <label class="form-label" for="fechaReserva">Fecha de Reserva</label>
-                                <div class="input-group has-length">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fal fa-calendar-alt"></i></span>
-                                    </div>
-                                    <input type="text" id="fechaReserva" class="form-control" placeholder="Fecha de Reserva" aria-label="Fecha de Reserva"
-                                           value="<g:formatDate type="date" style="FULL" date="${fecha}"/>" readonly />
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="horaInicio">Hora Inicio</label>
-                                <div class="input-group has-length">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fal fa-clock"></i></span>
-                                    </div>
-                                    <input type="text" name="horaInicio" id="horaInicio" class="form-control" placeholder="Hora Inicio" aria-label="Hora Inicio"
-                                           value="${modulo?.horaInicio}" readonly />
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="horaTermino">Hora Término</label>
-                                <div class="input-group has-length">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fal fa-clock"></i></span>
-                                    </div>
-                                    <input type="text" name="horaTermino" id="horaTermino" class="form-control" placeholder="Hora Término" aria-label="Hora Término"
-                                           value="${modulo?.horaTermino}" readonly />
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="valor">Valor</label>
-                                <div class="input-group has-length">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fal fa-dollar-sign"></i></span>
-                                    </div>
-                                    <input type="text" name="valor" id="valor" class="form-control" placeholder="Valor" aria-label="Valor"
-                                           value="${modulo?.valor}" readonly />
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" for="espacio">Espacio</label>
-                                <div class="input-group has-length">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"><i class="fal fa-building"></i></span>
-                                    </div>
-                                    <input type="text" name="espacio" id="espacio" class="form-control" placeholder="Espacio" aria-label="Espacio"
-                                           value="${espacio}" readonly />
-                                </div>
-                            </div>
-
-                            <sec:ifAnyGranted roles="ROLE_SUPERUSER, ROLE_USER">
-                                <div class="form-group">
-                                    <label class="form-label" for="direccion">Dirección</label>
-                                    <div class="input-group has-length">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text"><i class="fal fa-map-marker-alt"></i></span>
-                                        </div>
-                                        <input type="text" id="direccion" class="form-control" placeholder="Dirección" aria-label="Dirección" aria-describedby="Dirección"
-                                               value="${espacio?.direccion}, ${espacio?.comuna}, ${espacio?.comuna?.provincia?.region}" disabled="">
-                                    </div>
-                                </div>
-                            </sec:ifAnyGranted>
-
-                        </div>
-
-
-                        <div class="row" style="margin-bottom: 1em; display: flex; justify-content: center;">
-                            <g:if test="${prepago && session['link'] == null}">
-                                <div class="col-md-5 ">
-                                    <button id="reservaPrepago" type="submit" class="btn btn-info btn-block btn-md mt-3" value="2" name="tipoReservaId"
-                                            onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">
-                                        Pago En Línea
-                                    </button>
-                                </div>
-                            </g:if>
-                            <g:if test="${pospago  && session['link'] == null}">
-                                <div class="col-md-5 ">
-                                    <button onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" name="tipoReservaId"
-                                            id="reservaPospago" type="submit" class="btn btn-secondary btn-block btn-md mt-3" value="1" >
-                                        Pago Presencial
-                                    </button>
-                                </div>
-                            </g:if>
-                        </div>
-
-                    </div>
-                </g:form>
+                <sec:ifAnyGranted roles="ROLE_USER">
+                    <g:render template="formCreateCliente"/>
+                </sec:ifAnyGranted>
+                <sec:ifAnyGranted roles="ROLE_ADMIN">
+                    <g:render template="formCreateManual"/>
+                </sec:ifAnyGranted>
             </div>
         </div>
         <script>
@@ -129,6 +38,40 @@
                 toastr.warning("${flash.error}");
             });
             </g:if>
+
+            function buscarCliente(valor) {
+                $('#inputBuscador').attr('disabled', true);
+                $('#inputBuscador').blur();
+                $('#correo').html('<center> <i class="fal fa-spinner fa-pulse fa-3x fa-fw"></i></center>')
+                // var moduloId = document.getElementById('moduloId').value;
+                // var fechaReserva = document.getElementById('fechaReservaHidden').value;
+                var moduloId = ${ modulo?.id ?: 0 };
+                var fechaReserva =  "";
+                if( valor.length >= 4 ) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '${g.createLink(controller: 'user', action: 'busquedaInteligenteAdmin')}',
+                        data: {
+                            valor: valor,
+                            roleString: "ROLE_USER",
+                            moduloId: moduloId,
+                            fechaReserva: fechaReserva
+                        },
+                        success: function (data, textStatus) {
+                            $('#correo').html(data);
+                            $('#inputBuscador').attr('disabled', false);
+                            $('#inputBuscador').focus();
+                        }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            $('#inputBuscador').attr('disabled', false);
+                            $('#inputBuscador').focus();
+                        }
+                    });
+                }else{
+                    $('#correo').html('');
+                    $('#inputBuscador').attr('disabled', false);
+                    $('#inputBuscador').focus();
+                }
+            }
 
         </script>
     </body>

@@ -39,6 +39,7 @@ class ReservaController {
     DiaService diaService
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy")
     def springSecurityService
+    def tokenStorageService
     def flowService
     def tempService
     def groovyPageRenderer
@@ -117,9 +118,28 @@ class ReservaController {
         }
     }
 
+    @Secured(['ROLE_USER'])
     def save() {
         try{
-            CrearReservaRs crearReservaRs = reservaUtilService.crearReserva( params )
+            CrearReservaRs crearReservaRs = reservaUtilService.crearReserva( params, params?.tipoReservaId?.toLong() )
+            if( crearReservaRs.getCodigo() == "0" ){
+                flash.message = crearReservaRs.getMensaje()
+                redirect( controller: 'reserva', action: 'show', id: crearReservaRs.getReservaId() )
+            }else{
+                flash.error = crearReservaRs.getMensaje()
+                redirect(controller: 'home', action: 'dashboard')
+            }
+        }catch(e){
+            flash.error = "Ha ocurrido un error inesperado."
+            log.error("Ha ocurrido un error inesperado.")
+            redirect(controller: 'home', action: 'dashboard')
+        }
+    }
+
+    @Secured(['ROLE_ADMIN'])
+    def saveManual() {
+        try{
+            CrearReservaRs crearReservaRs = reservaUtilService.crearReserva( params,3 )
             if( crearReservaRs.getCodigo() == "0" ){
                 flash.message = crearReservaRs.getMensaje()
                 redirect( controller: 'reserva', action: 'show', id: crearReservaRs.getReservaId() )
@@ -825,7 +845,7 @@ class ReservaController {
             redirect(controller: 'reserva', action: 'reservasVigentesUser')
         }
         if( validadorPermisosUtilService.esRoleAdmin()){
-            redirect(controller: 'reserva', action: 'crearReservaManual', id: reserva?.espacio?.id)
+            redirect(controller: 'reserva', action: 'calendario', id: reserva?.espacio?.id)
         }
     }
 
@@ -1146,5 +1166,12 @@ class ReservaController {
             }else{ flash.error = "Ups! Ha ocurrido un error" }
         }catch(e){ flash.error = "Ups! Ha ocurrido un error" }
         redirect(controller: 'reserva', action: 'show', id: id)
+    }
+
+    def mesas(){
+        String header = request.getHeader("Authorization");
+        if(header != null && header.startsWith("Bearer"))
+            return header.replace("Bearer ", "");
+        return 0
     }
 }

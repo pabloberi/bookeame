@@ -46,9 +46,7 @@
                 type: 'POST',
                 url: '${g.createLink(controller: 'user', action: 'seleccionUser')}',
                 data: {
-                    userId: userId,
-                    moduloId: ${moduloId},
-                    fechaReserva: "${fechaReserva}"
+                    userId: userId
                 },
                 success: function (data, textStatus) {
                     $('#correo').html(data);
