@@ -8,6 +8,7 @@ import configuracionEmpresa.ConfiguracionEmpresa
 import dto.EventoCalendario
 import dto.CrearReservaRs
 import espacio.DiaService
+import flow.FlowEmpresa
 import gestion.General
 import empresa.Empresa
 import espacio.Espacio
@@ -35,7 +36,7 @@ class ReservaController {
 
     ReservaPlanificadaService reservaPlanificadaService
     ReservaUtilService reservaUtilService
-
+    PrepagoUtilService  prepagoUtilService
     DiaService diaService
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy")
     def springSecurityService
@@ -123,8 +124,17 @@ class ReservaController {
         try{
             CrearReservaRs crearReservaRs = reservaUtilService.crearReserva( params, params?.tipoReservaId?.toLong() )
             if( crearReservaRs.getCodigo() == "0" ){
-                flash.message = crearReservaRs.getMensaje()
-                redirect( controller: 'reserva', action: 'show', id: crearReservaRs.getReservaId() )
+                switch ( params?.tipoReservaId ){
+                    case "1":
+                        flash.message = crearReservaRs.getMensaje()
+                        redirect( controller: 'reserva', action: 'show', id: crearReservaRs.getReservaId() )
+                        break
+                    case "2":
+                        session['link'] = crearReservaRs?.mensaje
+                        session['temp'] = ReservaTemp.get(crearReservaRs?.reservaId)
+                        redirect(url: crearReservaRs?.mensaje)
+                        break
+                }
             }else{
                 flash.error = crearReservaRs.getMensaje()
                 redirect(controller: 'home', action: 'dashboard')
@@ -294,50 +304,6 @@ class ReservaController {
         }catch(e){}
         render view: 'reservasHistoricasUser', model: [reservaList: reservaList]
     }
-
-//    @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
-//    def guardarReservaManual(Long userId, Long moduloId, String fechaReserva){
-//        boolean exito = true
-//        User user = User.findById(userId)
-//        Modulo modulo = Modulo.findById(moduloId)
-//        Reserva reserva = new Reserva()
-//        if( fechaReserva != null) {
-//            def pattern = "dd-MM-yyyy"
-//            def date = new SimpleDateFormat(pattern).parse(fechaReserva)
-//            if (user != null && modulo != null && date != null) {
-//                if (reservaDisponible(modulo, fechaReserva)) {
-//                    reserva.usuario = user
-//                    reserva.fechaReserva = date
-//                    reserva.horaInicio = modulo?.horaInicio
-//                    reserva.horaTermino = modulo?.horaTermino
-//                    reserva.valor = modulo?.valor
-//                    reserva.espacio = modulo?.espacio
-//                    reserva.tipoReserva = TipoReserva.findById(3)
-//                    reserva.estadoReserva = EstadoReserva.findById(2)
-//                    try {
-//                        reservaService.save(reserva)
-//                        correoConfirmacionReserva(reserva?.id)
-//                    } catch (e) {
-//                        exito = false
-//                        flash.error = "Ups! un error ha ocurrido. No hemos podido registrar la información."
-//                    }
-//                } else {
-//                    exito = false
-//                    flash.error = "Módulo no disponible."
-//                }
-//            } else {
-//                exito = false
-//                flash.error = "Ups! un error ha ocurrido. No hemos podido registrar la información."
-//            }
-//        } else {
-//            exito = false
-//            flash.error = "Ups! un error ha ocurrido. No hemos podido registrar la información."
-//        }
-//        if( exito ){
-//            flash.message = "Reserva registrada exitosamente!"
-//        }
-//        redirect( controller: 'reserva', action: 'crearReservaManual', id: modulo?.espacio?.id)
-//    }
 
     @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
     def solicitudReservaAdmin(){
@@ -610,131 +576,47 @@ class ReservaController {
 ////        redirect responsePago
 //    }
 
-//    String pagarReserva(ReservaTemp reserva){
-//        User user = springSecurityService.getCurrentUser()
-//        String urlConfirm = "reserva/confirmFlow"
-//        String urlReturn = "reserva/reservasVigentesUser"
-//        if( user && reserva){
-//                FlowEmpresa flowEmpresa = FlowEmpresa.findByEmpresa(reserva?.espacio?.empresa)
-//                if( flowEmpresa ){
-//                    def params = [
-//                            "amount"         : costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ),
-//                            "apiKey"         : flowEmpresa?.apiKey,
-//                            "commerceOrder"  : flowService.correlativoFlow(),
-////                            "currency"       : "CLP",
-//                            "email"          : user?.email ?: "pablo@bericul.com",
-////                            "paymentMethod"  : 9,
-//                            "subject"        : "Pago de reserva ${reserva?.espacio?.nombre} ${ g.formatDate(format: 'dd-MM-yyyy', date: reserva?.fechaReserva) } ${reserva?.horaInicio}" ,
-//                            "timeout"        : 240,
-//                            "urlConfirmation": "${General.findByNombre('baseUrl').valor}/" + urlConfirm,
-//                            "urlReturn"      : "${General.findByNombre('baseUrl').valor}/" + urlReturn
-//                    ]
-//                    def array = flowService.createPayment(params, flowEmpresa?.secretKey)
-//                    flowService.avanceCorrelativo()
-//                    if( array[0] ){
-//                        String token = array[0]
-//                        registroToken(token, reserva)
-//
-//                        return "${array[1] + "?token=" + array[0]}"
-//                    }else{
-//                        return "error"
-//                    }
-//                }else{
-//                    return "error"
-//                }
-//        }else{
-//            return "error"
-//        }
-//    }
 
-//    void registroToken(String token, ReservaTemp reserva){
-//        try{
-//            reserva.token = token
-//            reservaTempService.save(reserva)
-//        }catch(e){}
-//    }
-//
-//    @Secured(['permitAll()'])
-//    def confirmFlow(String token){
-//        boolean exito = true
-//        println(token)
-//        ReservaTemp reserva = ReservaTemp.findByToken(token)
-//        if( reserva ){
-//            FlowEmpresa flowEmpresa = FlowEmpresa.findByEmpresa( reserva?.espacio?.empresa)
-//            if(flowEmpresa){
-//                def response = flowService.paymentStatus(token,flowEmpresa?.apiKey, flowEmpresa?.secretKey)
-//
-//                if( response == 2 ){
-//                    try{
-//                        Reserva res = new Reserva()
-//                        res.usuario = reserva?.usuario
-//                        res.fechaReserva = reserva?.fechaReserva
-//                        res.horaInicio = reserva?.horaInicio
-//                        res.horaTermino = reserva?.horaTermino
-//                        res.valor = costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) ?: reserva?.valor
-//                        res.valorComisionFlow = costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) - reserva?.valor
-//                        res.espacio = reserva?.espacio
-//                        res.tipoReserva = reserva?.tipoReserva
-//                        res.estadoReserva = reserva?.estadoReserva
-//                        res.evaluacion = reserva?.evaluacion
-//                        res.token = reserva?.token
-//                        reservaService.save(res)
-//                        correoConfirmacionReserva(res?.id)
-//                        notificationService.sendPushNotification(res?.usuarioId,"Nueva reserva registrada", "Tienes una nueva reserva en tu agenda.")
-//                        reservaTempService.delete(reserva?.id)
-//                        session['link'] = null
-//                        session['temp'] = null
-//                    }catch(e){}
-//                }else{
-//                    reservaTempService.delete(reserva?.id)
-//                    exito = false
-//                }
-//            }else{ exito = false }
-//        }else{ exito = false }
-//        return exito
-//    }
 
-//    Integer costoTransaccion(Integer precioNeto, def comision ){
-//        try{
-//            Integer precioFinal
-//            Integer diferencial
-//            def valorComision = 0
-//            def valorIva = 0
-//            def total = 0
-//            if( comision != 0 ){
-//                valorComision = precioNeto * ((comision/100) + 0.0001)
-//                valorIva = valorComision * 0.19
-//                total = precioNeto + valorIva + valorComision
-//                precioFinal = Math?.round(total)?.toInteger()
-//                diferencial = diferenciaComision( precioFinal, comision,  valorComision , valorIva )
-//                return precioFinal + diferencial
-//            }else{
-//                total = precioNeto
-//                precioFinal = Math?.round(total)?.toInteger()
-//                return precioFinal
-//            }
-//        }catch(e){}
-//    }
-//
-//    Integer diferenciaComision(Integer total, def comision, def valorComision, def valorIva){
-//        try{
-//            def aux = valorComision + valorIva
-//            def old = Math?.round(aux)?.toInteger()
-//            def nuevaComision = total * ((comision/100) + 0.00005)
-//            def nuevoIva = nuevaComision * 0.19
-//            def totalComisionNueva = Math?.round(nuevaComision + nuevoIva)?.toInteger()
-//            return totalComisionNueva > old ? totalComisionNueva - old : 0
-//        }catch(e){}
-//    }
-//
-//    Integer valorModulo(Long id){
-//        Integer monto = 0
-//        try{
-//            Modulo modulo = Modulo.get(id)
-//            monto = modulo?.valor
-//        }catch(e){}
-//        render monto
-//    }
+    @Secured(['permitAll()'])
+    def confirmFlow(String token){
+        boolean exito = true
+        println(token)
+        ReservaTemp reserva = ReservaTemp.findByToken(token)
+        if( reserva ){
+            FlowEmpresa flowEmpresa = FlowEmpresa.findByEmpresa( reserva?.espacio?.empresa)
+            if(flowEmpresa){
+                def response = flowService.paymentStatus(token,flowEmpresa?.apiKey, flowEmpresa?.secretKey)
+
+                if( response == 2 ){
+                    try{
+                        Reserva res = new Reserva()
+                        res.usuario = reserva?.usuario
+                        res.fechaReserva = reserva?.fechaReserva
+                        res.horaInicio = reserva?.horaInicio
+                        res.horaTermino = reserva?.horaTermino
+                        res.valor = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) ?: reserva?.valor
+                        res.valorComisionFlow = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) - reserva?.valor
+                        res.espacio = reserva?.espacio
+                        res.tipoReserva = reserva?.tipoReserva
+                        res.estadoReserva = reserva?.estadoReserva
+                        res.evaluacion = reserva?.evaluacion
+                        res.token = reserva?.token
+                        reservaService.save(res)
+                        correoConfirmacionReserva(res?.id)
+                        notificationService.sendPushNotification(res?.usuarioId,"Nueva reserva registrada", "Tienes una nueva reserva en tu agenda.")
+                        reservaTempService.delete(reserva?.id)
+                        session['link'] = null
+                        session['temp'] = null
+                    }catch(e){}
+                }else{
+                    reservaTempService.delete(reserva?.id)
+                    exito = false
+                }
+            }else{ exito = false }
+        }else{ exito = false }
+        return exito
+    }
 
     def marcarNoDisponible(){
         render template: 'marcarNoDisponible', model: [moduloId: params?.moduloId, fechaReserva: params?.fechaReserva]

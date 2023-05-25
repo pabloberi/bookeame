@@ -7,6 +7,7 @@ import dto.CrearReservaRs
 import dto.EventoCalendario
 import empresa.Empresa
 import espacio.Espacio
+import flow.FlowEmpresa
 import gestion.General
 import gestion.NotificationService
 import grails.gorm.transactions.Transactional
@@ -34,7 +35,10 @@ class ReservaUtilService {
     def validadorPermisosUtilService
     def formatoFechaUtilService
     def springSecurityService
+    def tempService
     UserService userService
+    ReservaTempService reservaTempService
+    PrepagoUtilService prepagoUtilService
 
     Boolean eliminarReserva(Long id) {
         Boolean responseEliminar = false
@@ -275,17 +279,22 @@ class ReservaUtilService {
                     if( params?.userId ){
                         user =  User.get( params?.userId?.toLong() )
                     }else{
-                        if( !User.findByEmail(params?.correo) ){
-                            user.nombre = params?.nombre
-                            user.email = params?.correo
-                            user.celular = params?.celular
+                        if( User.findByEmail(params?.correoUser)){
+                            user = User.findByEmail(params?.correoUser)
+                        }else{
+                            user.nombre = params?.nombreUser
+                            user.email = params?.correoUser
+                            user.celular = params?.celularUser
+                            user.username = params?.correoUser
+                            user.password = params?.correoUser
+                            user.invitado = true
+                            user.accountLocked = true
                             userService.save(user)
                             String link = createLink( base:  General.findByNombre("baseUrl")?.valor, controller: 'user', action: 'registroInvitado', id: user?.id)
                             String template = groovyPageRenderer.render(template:  "/correos/invitarUser", model: [user: user, link: link])
                             utilService?.enviarCorreo(user?.email, "noresponder@bookeame.cl", "Termina tu registro y reserva fácil", template)
-                        }else{
-                            user = User.findByEmail(params?.correo)
                         }
+
                     }
                     return crearReservaEmpresa( modulo, espacio, fecha, tipoReservaId, user )
                 }
@@ -307,8 +316,9 @@ class ReservaUtilService {
         CrearReservaRs crearReservaRs = new CrearReservaRs()
         crearReservaRs.setCodigo("01")
         crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
+        User user = springSecurityService.getCurrentUser()
+        String responsePago
         if( tipoReservaId == 1 && conf?.tipoPago?.pospago ){
-            User user = springSecurityService.getCurrentUser()
             if( reservaPosPagoValidar(user) ){
                 Reserva reserva = new Reserva(
                         horaInicio: modulo?.horaInicio,
@@ -327,15 +337,57 @@ class ReservaUtilService {
                 crearReservaRs.setCodigo("0")
                 crearReservaRs.setMensaje("Reserva Creada Exitosamente!")
                 crearReservaRs.setReservaId(reserva?.id)
+                return crearReservaRs
             }else{
                 crearReservaRs.setCodigo("01")
                 crearReservaRs.setMensaje("Has superado la cantidad máxima de reservas Pos Pago vigentes.")
                 log.error("Usuario superó la cantidad máxima de reservas Pos Pago vigentes")
             }
         }
-        // AQUI DEBERIA IR LOGICA PREPAGO
+        if( tipoReservaId == 2 && conf?.tipoPago?.prepago ){
+            ReservaTemp reservaTemp = new ReservaTemp()
+            if( modulo?.valor > General.findByNombre('valorMinFlow')?.valor?.toInteger() ?: 0 ){
+                try {
+                    reservaTemp.usuario = user
+                    reservaTemp.fechaReserva = fecha
+                    reservaTemp.horaInicio = modulo?.horaInicio
+                    reservaTemp.horaTermino = modulo?.horaTermino
+                    reservaTemp.valor = modulo?.valor
+                    reservaTemp.espacio = modulo?.espacio
+                    reservaTemp.tipoReserva = TipoReserva.findById(2)
+                    reservaTemp.estadoReserva = EstadoReserva.findById(2)
+                    reservaTempService.save(reservaTemp)
+                } catch (e) {
+                    crearReservaRs.setCodigo("01")
+                    crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
+                    return crearReservaRs
+                }
+                responsePago = prepagoUtilService?.pagarReserva(reservaTemp)
+                println(responsePago)
+                int tiempoTrigger = 15
+                tempService.triggerReservaTemp(reservaTemp?.id, tiempoTrigger)
+
+                if( responsePago == "error" ){
+                    crearReservaRs.setCodigo("01")
+                    crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
+                    reservaTempService.delete(reservaTemp?.id)
+                    return crearReservaRs
+                }
+
+                crearReservaRs.codigo = "0"
+                crearReservaRs.mensaje = responsePago
+                crearReservaRs.reservaId = reservaTemp?.id
+                return crearReservaRs
+
+            }else{
+                crearReservaRs.setCodigo("01")
+                crearReservaRs.setMensaje("Valor de la reserva no permite pagos en línea.")
+                return crearReservaRs
+            }
+        }
         return crearReservaRs
     }
+
 
     def crearReservaEmpresa( Modulo modulo, Espacio espacio, Date fecha, Long tipoReservaId,User user){
         CrearReservaRs crearReservaRs = new CrearReservaRs()
