@@ -71,23 +71,23 @@
         </div>
 
 
-        <div class="row" style="margin-bottom: 1em; display: flex; justify-content: center;">
-                <g:if test="${prepago && session['link'] == null}">
-                    <div class="col-md-5 ">
-                        <button id="reservaPrepago" type="submit" class="btn btn-info btn-block btn-md mt-3" name="tipoReservaId" value="2"
-                                onclick="return confirm('${message(code: 'aviso.cargo.adicional.prepago', default: 'Are you sure?')}');">
-                            Pago En Línea
-                        </button>
-                    </div>
-                </g:if>
-                <g:if test="${pospago  && session['link'] == null}">
-                    <div class="col-md-5 ">
-                        <button onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" name="tipoReservaId" value="1"
-                                id="reservaPospago" type="submit" class="btn btn-secondary btn-block btn-md mt-3">
-                            Pago Presencial
-                        </button>
-                    </div>
-                </g:if>
+        <div class="row" style="margin-bottom: 1em; display: flex; justify-content: center; margin-left: 1em; margin-right: 1em;">
+            <g:if test="${pospago  && session['link'] == null}">
+                <div class="col-md-5 ">
+                    <button onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');" name="tipoReservaId" value="1"
+                            id="reservaPospago" type="submit" class="btn btn-secondary btn-block btn-md mt-3">
+                        Pago Presencial
+                    </button>
+                </div>
+            </g:if>
+            <g:if test="${prepago && session['link'] == null}">
+                <div class="col-md-5">
+                    <button id="reservaPrepago" type="submit" class="btn btn-outline-success btn-block btn-md mt-3" name="tipoReservaId" value="2"
+                            onclick="return confirm('${message(code: 'aviso.cargo.adicional.prepago', default: 'Are you sure?')}');">
+                            Pago en Linea + $ ${comision - modulo?.valor} .-
+                    </button>
+                </div>
+            </g:if>
         </div>
 
     </div>

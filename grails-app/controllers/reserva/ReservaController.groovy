@@ -105,7 +105,9 @@ class ReservaController {
                                             prepago:        configuracion?.tipoPago?.prepago,
                                             pospago:        configuracion?.tipoPago?.pospago,
                                             token:          reservaUtilService?.encriptarDatosReserva(modulo,espacio,fecha),
-                                            reserva:        new Reserva(params)
+                                            reserva:        new Reserva(params),
+                                            comision:       prepagoUtilService?.costoTransaccion(modulo?.valor,
+                                                    FlowEmpresa.findByEmpresa(espacio?.empresa).comision?.valor ?: 3.19) ?:0
                 ]
             }else{
                 flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
