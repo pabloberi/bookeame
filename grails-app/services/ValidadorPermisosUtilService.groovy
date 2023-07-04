@@ -125,6 +125,4 @@ class ValidadorPermisosUtilService {
     // FIN VALIDACION DE RELACIONES
 
 
-
-
 }
