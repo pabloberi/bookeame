@@ -5,8 +5,10 @@ import auth.User
 import auth.UserRole
 import auth.UserService
 import configuracionEmpresa.ConfiguracionEmpresa
+import dto.EventoCalendario
+import dto.CrearReservaRs
 import espacio.DiaService
-import flow.Comision
+import flow.FlowEmpresa
 import gestion.General
 import empresa.Empresa
 import espacio.Espacio
@@ -15,11 +17,8 @@ import evaluacion.Evaluacion
 import evaluacion.EvaluacionService
 import evaluacion.EvaluacionToEspacio
 import evaluacion.EvaluacionToUser
-import flow.FlowEmpresa
 import gestion.NotificationService
 import grails.plugin.springsecurity.annotation.Secured
-
-import grails.validation.ValidationException
 
 import java.text.SimpleDateFormat
 
@@ -37,32 +36,25 @@ class ReservaController {
 
     ReservaPlanificadaService reservaPlanificadaService
     ReservaUtilService reservaUtilService
-
+    PrepagoUtilService  prepagoUtilService
     DiaService diaService
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy")
     def springSecurityService
+    def tokenStorageService
     def flowService
-    def tempService
     def groovyPageRenderer
     def utilService
-    def validadorPermisosUtilService
     def validaPermisosReservaUtilService
     def formatoFechaUtilService
+    def validadorPermisosUtilService
 
     static allowedMethods = [save: "POST", update: "PUT", delete: "DELETE"]
 
-    @Secured(['ROLE_SUPERUSER'])
-    def index(Integer max) {
-        params.max = Math.min(max ?: 10, 100)
-        respond reservaService.list(params), model:[reservaCount: reservaService.count()]
-    }
-
     def show(Long id) {
         if(validadorPermisosUtilService?.validarRelacionReservaUser(id)){
-            User user = springSecurityService.getCurrentUser()
             Reserva reserva = reservaService.get(id)
             try{
-                if(validadorPermisosUtilService.esRoleAdmin(user)){
+                if(validadorPermisosUtilService.esRoleAdmin()){
                     ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)?.fono
                     respond reserva, model: [
                             esReservaVigente: validaPermisosReservaUtilService?.esReservaVigente(reserva),
@@ -71,7 +63,7 @@ class ReservaController {
                             configuracion: ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)
                     ]
                 }
-                if(validadorPermisosUtilService.esRoleUser(user)){
+                if(validadorPermisosUtilService.esRoleUser()){
                     ConfiguracionEmpresa configuracion = ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)
                     respond reserva, model: [
                             hoy: new Date(),
@@ -88,78 +80,101 @@ class ReservaController {
         }
     }
 
-    @Secured(['ROLE_SUPERUSER'])
-    def create() {
-        respond new Reserva(params)
+    def calendario(Long id){
+        List<EventoCalendario> eventoList = []
+        Espacio espacio = Espacio.findById(id)
+        try{
+            eventoList = reservaUtilService.getEventosCalendario(espacio?.id)
+        }catch(e){
+            log.error(e)
+            flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
+        }
+        respond espacio, model: [eventoList: eventoList]
     }
 
-    @Secured(['ROLE_SUPERUSER'])
-    def save(Reserva reserva) {
-        if (reserva == null) {
-            notFound()
-            return
-        }
-
-        try {
-            reservaService.save(reserva)
-        } catch (ValidationException e) {
-            respond reserva.errors, view:'crearReservaManual'
-            return
-        }
-
-        request.withFormat {
-            form multipartForm {
-                flash.message = message(code: 'default.created.message', args: [message(code: 'reserva.label', default: 'Reserva'), reserva.id])
-                redirect reserva
+    def create(String fecha, String moduloId, Long id) {
+        try{
+            if( reservaUtilService?.puedeCrearReserva(moduloId?.toLong(), id, fecha) ){
+                Espacio espacio = Espacio.get( id )
+                Modulo modulo = Modulo.get( moduloId?.toLong() )
+                ConfiguracionEmpresa configuracion = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
+                Date fechaCompleta = formatoFechaUtilService?.stringToDateConverter( fecha, "dd-MM-yyyy" )
+                respond espacio, model: [   modulo:         modulo,
+                                            fecha:          fechaCompleta,
+                                            fechaReserva:   fecha,
+                                            prepago:        configuracion?.tipoPago?.prepago,
+                                            pospago:        configuracion?.tipoPago?.pospago,
+                                            token:          reservaUtilService?.encriptarDatosReserva(modulo,espacio,fecha),
+                                            reserva:        new Reserva(params),
+                                            comision:       prepagoUtilService?.costoTransaccion(modulo?.valor,
+                                                    FlowEmpresa.findByEmpresa(espacio?.empresa).comision?.valor ?: 3.19) ?:0
+                ]
+            }else{
+                flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
+                redirect(controller: 'home', action: 'dashboard')
             }
-            '*' { respond reserva, [status: CREATED] }
+        }catch(e){
+            log.error(e)
+            flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
+            redirect(controller: 'home', action: 'dashboard')
         }
     }
 
-    @Secured(['ROLE_SUPERUSER'])
-    def edit(Long id) {
-        respond reservaService.get(id)
-    }
+    @Secured(['ROLE_USER'])
+    def save() {
+        try{
+            CrearReservaRs crearReservaRs = reservaUtilService.crearReserva( params, params?.tipoReservaId?.toLong() )
+            if( crearReservaRs.getCodigo() == "0" ){
+                switch ( params?.tipoReservaId ){
+                    case "1":
+                        flash.message = crearReservaRs.getMensaje()
+                        redirect( controller: 'reserva', action: 'show', id: crearReservaRs.getReservaId() )
+                        break
+                    case "2":
+                        session['link'] = crearReservaRs?.mensaje
+                        session['temp'] = ReservaTemp.get(crearReservaRs?.reservaId)
+                        redirect(url: crearReservaRs?.mensaje)
+                        break
+                }
+            }else{
+                flash.error = crearReservaRs.getMensaje()
+                redirect(controller: 'reserva', action: 'create',
+                        params: [
+                                fecha: params?.fechaReserva,
+                                moduloId: params?.moduloId,
+                                id: params?.espacioId
 
-    @Secured(['ROLE_SUPERUSER'])
-    def update(Reserva reserva) {
-        if (reserva == null) {
-            notFound()
-            return
-        }
-
-        try {
-            reservaService.save(reserva)
-        } catch (ValidationException e) {
-            respond reserva.errors, view:'edit'
-            return
-        }
-
-        request.withFormat {
-            form multipartForm {
-                flash.message = message(code: 'default.updated.message', args: [message(code: 'reserva.label', default: 'Reserva'), reserva.id])
-                redirect reserva
+                        ])
             }
-            '*'{ respond reserva, [status: OK] }
+        }catch(e){
+            flash.error = "Ha ocurrido un error inesperado."
+            log.error("Ha ocurrido un error inesperado.")
+            redirect(controller: 'reserva', action: 'create', params: [
+                    fecha: params?.fechaReserva,
+                    moduloId: params?.moduloId,
+                    id: params?.espacioId
+
+            ])
         }
     }
 
-    @Secured(['ROLE_SUPERUSER'])
-    def delete(Long id) {
-        if (id == null) {
-            notFound()
-            return
-        }
-
-        reservaService.delete(id)
-
-        request.withFormat {
-            form multipartForm {
-                flash.message = message(code: 'default.deleted.message', args: [message(code: 'reserva.label', default: 'Reserva'), id])
-                redirect action:"index", method:"GET"
+    @Secured(['ROLE_ADMIN'])
+    def saveManual() {
+        try{
+            CrearReservaRs crearReservaRs = reservaUtilService.crearReserva( params,3 )
+            if( crearReservaRs.getCodigo() == "0" ){
+                flash.message = crearReservaRs.getMensaje()
+                redirect( controller: 'reserva', action: 'show', id: crearReservaRs.getReservaId() )
+            }else{
+                flash.error = crearReservaRs.getMensaje()
+                redirect(controller: 'home', action: 'dashboard')
             }
-            '*'{ render status: NO_CONTENT }
+        }catch(e){
+            flash.error = "Ha ocurrido un error inesperado."
+            log.error("Ha ocurrido un error inesperado.")
+            redirect(controller: 'home', action: 'dashboard')
         }
+
     }
 
     protected void notFound() {
@@ -172,111 +187,6 @@ class ReservaController {
         }
     }
 
-    @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
-    def crearReservaManual(Long id){
-        Espacio espacio = Espacio.findById(id)
-        ConfiguracionEmpresa conf = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
-
-        if(validarRelacionEspacioUser(id)) {
-            List<Modulo> moduloList
-            List<Reserva> reservaList
-            def dateList
-
-            if( espacio ){
-                moduloList = Modulo.findAllByEspacio(espacio)
-                dateList = obteneFechaList(conf?.diasAMostrar ?: 7)
-                reservaList = obtenerReservas(espacio, "ADMIN")
-            }
-
-            respond espacio, model: [moduloList: moduloList, dateList: dateList, reservaList: reservaList]
-        }else{
-            render view: '/notFound'
-        }
-    }
-
-    def obtenerReservas(Espacio esp, String role){
-        ConfiguracionEmpresa conf = ConfiguracionEmpresa.findByEmpresa(esp?.empresa)
-        Date hoy = new Date()
-        Calendar c = Calendar.getInstance()
-        c.setTime(hoy)
-        c.set(Calendar.MILLISECOND, 0)
-        c.set(Calendar.SECOND, 0)
-        c.set(Calendar.MINUTE, 0)
-        c.set(Calendar.HOUR_OF_DAY, 0)
-        def inicio = c.getTime()
-        Integer diasAMostrar = conf?.diasAMostrar ?: 7
-        c.add(Calendar.DAY_OF_YEAR, diasAMostrar + 1) //sumale uno a la variable
-        def fin = c.getTime()
-        List<Reserva> reservaList = Reserva.createCriteria().list {
-            and{
-                espacio{
-                    eq('id', esp?.id)
-                }
-                if( role == "ADMIN"){
-                    ge('fechaReserva', inicio)
-                }
-                if( role == "USER"){
-                    between('fechaReserva', inicio, fin)
-                }
-            }
-        }
-        return reservaList
-    }
-
-    @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
-    def obteneFechaList(Integer dias){
-        SimpleDateFormat frm= new SimpleDateFormat("yyyy-MM-dd")
-        Date hoy = new Date()
-
-        Calendar c = Calendar.getInstance()
-        c.setTime(hoy)
-        def dateList = []
-        for(int i=1;i<= dias ;i++){
-            Formatter dia = new Formatter()
-            Formatter mes = new Formatter()
-            def year
-            def month
-            def day
-            String diaFrm
-            String mesFrm
-
-            year = c.get(Calendar.YEAR).toString()
-            month = c.get(Calendar.MONTH) + 1
-            day = c.get(Calendar.DAY_OF_MONTH)
-
-            mes.format("%02d", month)
-            dia.format("%02d", day)
-            diaFrm = dia
-            mesFrm = mes
-            String nombreDia = formatoFechaUtilService?.obtenerNombreDia( c.get(Calendar.DAY_OF_WEEK))
-
-            String fecha=  year + "-" + mesFrm + "-" + diaFrm
-            Date fechaDate = frm.parse(fecha)
-
-            String fechaInvertida = diaFrm + "-" + mesFrm + "-" + year
-
-            dateList.add([ fecha, nombreDia, fechaDate, fechaInvertida])
-            c.add(Calendar.DAY_OF_YEAR, 1)
-        }
-//        println(dateList)
-        return  dateList
-    }
-
-    Boolean validarRelacionEspacioUser(Long espacioId){
-        Espacio espacio = Espacio.findById(espacioId)
-        User user = springSecurityService.getCurrentUser()
-
-        if( espacio && user ){
-            Empresa empresa = Empresa.findByUsuario(user)
-            if( empresa?.id == espacio?.empresaId ){
-                return true
-            }else{
-                return false
-            }
-        }else{
-            return false
-        }
-    }
 
     @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
     def reservasVigentesAdmin(){
@@ -383,198 +293,6 @@ class ReservaController {
             }
         }catch(e){}
         render view: 'reservasHistoricasUser', model: [reservaList: reservaList]
-    }
-
-    @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
-    def guardarReservaManual(Long userId, Long moduloId, String fechaReserva){
-        boolean exito = true
-        User user = User.findById(userId)
-        Modulo modulo = Modulo.findById(moduloId)
-        Reserva reserva = new Reserva()
-        if( fechaReserva != null) {
-            def pattern = "dd-MM-yyyy"
-            def date = new SimpleDateFormat(pattern).parse(fechaReserva)
-            if (user != null && modulo != null && date != null) {
-                if (reservaDisponible(modulo, fechaReserva)) {
-                    reserva.usuario = user
-                    reserva.fechaReserva = date
-                    reserva.horaInicio = modulo?.horaInicio
-                    reserva.horaTermino = modulo?.horaTermino
-                    reserva.valor = modulo?.valor
-                    reserva.espacio = modulo?.espacio
-                    reserva.tipoReserva = TipoReserva.findById(3)
-                    reserva.estadoReserva = EstadoReserva.findById(2)
-                    try {
-                        reservaService.save(reserva)
-                        correoConfirmacionReserva(reserva?.id)
-                    } catch (e) {
-                        exito = false
-                        flash.error = "Ups! un error ha ocurrido. No hemos podido registrar la información."
-                    }
-                } else {
-                    exito = false
-                    flash.error = "Módulo no disponible."
-                }
-            } else {
-                exito = false
-                flash.error = "Ups! un error ha ocurrido. No hemos podido registrar la información."
-            }
-        } else {
-            exito = false
-            flash.error = "Ups! un error ha ocurrido. No hemos podido registrar la información."
-        }
-        if( exito ){
-            flash.message = "Reserva registrada exitosamente!"
-        }
-        redirect( controller: 'reserva', action: 'crearReservaManual', id: modulo?.espacio?.id)
-    }
-
-    def reservaDisponible(Modulo modulo, String fecha){
-        Date hoy = new Date()
-        def pattern = "dd-MM-yyyy"
-        def fechaReserva = new SimpleDateFormat(pattern).parse(fecha)
-        Calendar c = Calendar.getInstance()
-        c.setTime(fechaReserva)
-        c.set(Calendar.MINUTE, modulo?.horaInicio.substring(3,5).toInteger())
-        c.set(Calendar.HOUR_OF_DAY, modulo?.horaInicio.substring(0,2).toInteger())
-//        println(modulo?.horaInicio.substring(3,5).toInteger())
-        if( c.getTime() >= hoy ){
-            c.set(Calendar.MILLISECOND, 0)
-            c.set(Calendar.SECOND, 0)
-            c.set(Calendar.MINUTE, 0)
-            c.set(Calendar.HOUR_OF_DAY, 0)
-
-            List<Reserva> reservaList = Reserva.createCriteria().list {
-                and{
-                    eq('fechaReserva', c.getTime())
-                    estadoReserva {
-                        ne('id', 3l)
-                    }
-                    espacio{
-                        eq('id', modulo?.espacio?.id)
-                    }
-                    eq('horaInicio', modulo?.horaInicio)
-                    eq('horaTermino', modulo?.horaTermino)
-                }
-            }
-            List<ReservaTemp> reservaTempList = ReservaTemp.createCriteria().list {
-                and{
-                    eq('fechaReserva', c.getTime())
-                    estadoReserva {
-                        ne('id', 3l)
-                    }
-                    espacio{
-                        eq('id', modulo?.espacio?.id)
-                    }
-                    eq('horaInicio', modulo?.horaInicio)
-                    eq('horaTermino', modulo?.horaTermino)
-                }
-            }
-
-            if( reservaList.size() == 0 && reservaTempList.size() == 0 ){
-                return true
-            }else{
-                return false
-            }
-        }else{
-            return false
-        }
-
-    }
-
-    @Secured(['ROLE_SUPERUSER','ROLE_USER'])
-    def crearReservaUser(Long id) {
-        Espacio espacio = Espacio.findById(id)
-        ConfiguracionEmpresa conf = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
-
-        List<Modulo> moduloList
-        List<Reserva> reservaList
-        def dateList
-
-        if (espacio) {
-            moduloList = Modulo.findAllByEspacio(espacio)
-            dateList = obteneFechaList(conf?.diasAMostrar ?: 7)
-            reservaList = obtenerReservas(espacio, "USER")
-        }
-
-        respond espacio, model: [moduloList: moduloList, dateList: dateList, reservaList: reservaList, configuracion: conf]
-    }
-
-    @Secured(['ROLE_SUPERUSER','ROLE_USER'])
-    def reservaPospago(Long moduloId, String fechaReserva, Long espacioId){
-        boolean exito = true
-        if( moduloId != null && fechaReserva != null ){
-            Modulo modulo = Modulo.findById(moduloId)
-            User user = springSecurityService.getCurrentUser()
-
-            if( modulo != null && user != null && fechaReserva != null ){
-                def pattern = "dd-MM-yyyy"
-                def date = new SimpleDateFormat(pattern).parse(fechaReserva)
-                if( reservaDisponible(modulo, fechaReserva) ) {
-                    if( reservaPosPagoValidar(user) ){
-                        try {
-                            Reserva reserva = new Reserva()
-                            reserva.usuario = user
-                            reserva.fechaReserva = date
-                            reserva.horaInicio = modulo?.horaInicio
-                            reserva.horaTermino = modulo?.horaTermino
-                            reserva.valor = modulo?.valor
-                            reserva.espacio = modulo?.espacio
-                            reserva.tipoReserva = TipoReserva.findById(1)
-                            reserva.estadoReserva = EstadoReserva.findById(1)
-                            reservaService.save(reserva)
-                            notificationService.sendPushNotification(reserva?.espacio?.empresa?.usuarioId, "Solicitud de reserva", "Tienes una solicitud de reserva pospago.")
-                        } catch (e) {
-                            exito = false
-                            flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-                        }
-                    }else{
-                        exito = false
-                        flash.error = "Has excedido el limite de reservas Pospago vigentes."
-                    }
-                }else{
-                    exito = false
-                    flash.error = "Módulo no disponible."
-                }
-            }else{
-                exito = false
-                flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-            }
-        }else{
-            exito = false
-            flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-        }
-        if( exito ){ flash.message = "Reserva creada exitosamente."}
-
-        render(controller: 'reserva', action: 'crearReservaUser', id: espacioId )
-
-    }
-
-    def reservaPosPagoValidar(User user){
-        Date hoy = new Date()
-        Calendar c = Calendar.getInstance()
-        c.setTime(hoy)
-        c.set(Calendar.MILLISECOND, 0)
-        c.set(Calendar.SECOND, 0)
-        c.set(Calendar.MINUTE, 0)
-        c.set(Calendar.HOUR_OF_DAY, 0)
-
-        List<Reserva> reservaList = Reserva.createCriteria().list {
-            and{
-                ge('fechaReserva', c.getTime())
-                tipoReserva {
-                    eq('id', 1l)
-                }
-                usuario{
-                    eq('id', user?.id)
-                }
-            }
-        }
-        if( reservaList.size() < General.findByNombre('maximoPosPago')?.valor?.toInteger() ){
-            return true
-        }else{
-            return false
-        }
     }
 
     @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
@@ -772,125 +490,6 @@ class ReservaController {
         }catch(e) {}
     }
 
-    @Secured(['ROLE_SUPERUSER','ROLE_USER'])
-    def reservaPrepago(){
-        boolean exito = true
-        Long moduloId = params?.moduloId?.toLong()
-        String fechaReserva = params?.fechaReservaHidden
-        Long espacioId = params?.espacioId?.toLong()
-        String responsePago
-        ReservaTemp reserva = new ReservaTemp()
-        if( moduloId != null && fechaReserva != null ){
-            Modulo modulo = Modulo.findById(moduloId)
-            User user = springSecurityService.getCurrentUser()
-
-            if( modulo != null && user != null && fechaReserva != null ){
-                if( modulo?.valor > General.findByNombre('valorMinFlow')?.valor?.toInteger() ?: 0 ){
-                    def pattern = "dd-MM-yyyy"
-                    def date = new SimpleDateFormat(pattern).parse(fechaReserva)
-                    if( reservaDisponible(modulo, fechaReserva) ) {
-                        try {
-                            reserva.usuario = user
-                            reserva.fechaReserva = date
-                            reserva.horaInicio = modulo?.horaInicio
-                            reserva.horaTermino = modulo?.horaTermino
-                            reserva.valor = modulo?.valor
-                            reserva.espacio = modulo?.espacio
-                            reserva.tipoReserva = TipoReserva.findById(2)
-                            reserva.estadoReserva = EstadoReserva.findById(2)
-                            reservaTempService.save(reserva)
-
-                        } catch (e) {
-                            exito = false
-                            flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-                        }
-                        responsePago = pagarReserva(reserva)
-                        println(responsePago)
-                        int tiempoTrigger = 15
-                        tempService.triggerReservaTemp(reserva?.id, tiempoTrigger)
-                    }else{
-                        exito = false
-                        flash.error = "Módulo momentaneamente no disponible."
-                    }
-                }else{
-                    exito = false
-                    flash.error = "Valor de la reserva no permite pagos en línea."
-                }
-            }else{
-                exito = false
-                flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-            }
-        }else{
-            exito = false
-            flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-        }
-
-        if( responsePago == "error" ){
-            println (responsePago)
-            exito = false
-            flash.error = "Ups! un error ha ocurrido"
-        }
-
-        if( exito ){
-//            flash.message = "Reserva creada exitosamente."
-            session['link'] = responsePago
-            session['temp'] = reserva
-            redirect(url: responsePago)
-        }else{
-            if( reserva ){
-                try{
-                    reservaTempService.delete(reserva?.id)
-                }catch(e){}
-            }
-            redirect (controller: "reserva", action: 'crearReservaUser', id: espacioId)
-        }
-//        redirect responsePago
-    }
-
-    String pagarReserva(ReservaTemp reserva){
-        User user = springSecurityService.getCurrentUser()
-        String urlConfirm = "reserva/confirmFlow"
-        String urlReturn = "reserva/reservasVigentesUser"
-        if( user && reserva){
-                FlowEmpresa flowEmpresa = FlowEmpresa.findByEmpresa(reserva?.espacio?.empresa)
-                if( flowEmpresa ){
-                    def params = [
-                            "amount"         : costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ),
-                            "apiKey"         : flowEmpresa?.apiKey,
-                            "commerceOrder"  : flowService.correlativoFlow(),
-//                            "currency"       : "CLP",
-                            "email"          : user?.email ?: "pablo@bericul.com",
-//                            "paymentMethod"  : 9,
-                            "subject"        : "Pago de reserva ${reserva?.espacio?.nombre} ${ g.formatDate(format: 'dd-MM-yyyy', date: reserva?.fechaReserva) } ${reserva?.horaInicio}" ,
-                            "timeout"        : 240,
-                            "urlConfirmation": "${General.findByNombre('baseUrl').valor}/" + urlConfirm,
-                            "urlReturn"      : "${General.findByNombre('baseUrl').valor}/" + urlReturn
-                    ]
-                    def array = flowService.createPayment(params, flowEmpresa?.secretKey)
-                    flowService.avanceCorrelativo()
-                    if( array[0] ){
-                        String token = array[0]
-                        registroToken(token, reserva)
-
-                        return "${array[1] + "?token=" + array[0]}"
-                    }else{
-                        return "error"
-                    }
-                }else{
-                    return "error"
-                }
-        }else{
-            return "error"
-        }
-    }
-
-    void registroToken(String token, ReservaTemp reserva){
-        try{
-            reserva.token = token
-            reservaTempService.save(reserva)
-        }catch(e){}
-    }
-
     @Secured(['permitAll()'])
     def confirmFlow(String token){
         boolean exito = true
@@ -908,8 +507,8 @@ class ReservaController {
                         res.fechaReserva = reserva?.fechaReserva
                         res.horaInicio = reserva?.horaInicio
                         res.horaTermino = reserva?.horaTermino
-                        res.valor = costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) ?: reserva?.valor
-                        res.valorComisionFlow = costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) - reserva?.valor
+                        res.valor = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) ?: reserva?.valor
+                        res.valorComisionFlow = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) - reserva?.valor
                         res.espacio = reserva?.espacio
                         res.tipoReserva = reserva?.tipoReserva
                         res.estadoReserva = reserva?.estadoReserva
@@ -929,52 +528,6 @@ class ReservaController {
             }else{ exito = false }
         }else{ exito = false }
         return exito
-    }
-
-    Integer costoTransaccion(Integer precioNeto, def comision ){
-        try{
-            Integer precioFinal
-            Integer diferencial
-            def valorComision = 0
-            def valorIva = 0
-            def total = 0
-            if( comision != 0 ){
-                valorComision = precioNeto * ((comision/100) + 0.0001)
-                valorIva = valorComision * 0.19
-                total = precioNeto + valorIva + valorComision
-                precioFinal = Math?.round(total)?.toInteger()
-                diferencial = diferenciaComision( precioFinal, comision,  valorComision , valorIva )
-                return precioFinal + diferencial
-            }else{
-                total = precioNeto
-                precioFinal = Math?.round(total)?.toInteger()
-                return precioFinal
-            }
-        }catch(e){}
-    }
-
-    Integer diferenciaComision(Integer total, def comision, def valorComision, def valorIva){
-        try{
-            def aux = valorComision + valorIva
-            def old = Math?.round(aux)?.toInteger()
-            def nuevaComision = total * ((comision/100) + 0.00005)
-            def nuevoIva = nuevaComision * 0.19
-            def totalComisionNueva = Math?.round(nuevaComision + nuevoIva)?.toInteger()
-            return totalComisionNueva > old ? totalComisionNueva - old : 0
-        }catch(e){}
-    }
-
-    def testMetodo(Long id){
-        render costoTransaccion( 18000, Comision.get(id).valor)
-    }
-
-    Integer valorModulo(Long id){
-        Integer monto = 0
-        try{
-            Modulo modulo = Modulo.get(id)
-            monto = modulo?.valor
-        }catch(e){}
-        render monto
     }
 
     def marcarNoDisponible(){
@@ -1071,7 +624,6 @@ class ReservaController {
 
     @Secured(['ROLE_USER','ROLE_ADMIN', 'ROLE_SUPERUSER'])
     def eliminarReserva(Long id){
-        User user = springSecurityService.getCurrentUser()
         Reserva reserva = Reserva.get(id)
         try{
             if(reservaUtilService.eliminarReserva(id)){
@@ -1083,11 +635,11 @@ class ReservaController {
             flash.error = "Ha ocurrido un error."
             render view: '/notFound'
         }
-        if( validadorPermisosUtilService.esRoleUser(user)){
+        if( validadorPermisosUtilService.esRoleUser()){
             redirect(controller: 'reserva', action: 'reservasVigentesUser')
         }
-        if( validadorPermisosUtilService.esRoleAdmin(user)){
-            redirect(controller: 'reserva', action: 'crearReservaManual', id: reserva?.espacio?.id)
+        if( validadorPermisosUtilService.esRoleAdmin()){
+            redirect(controller: 'reserva', action: 'calendario', id: reserva?.espacio?.id)
         }
     }
 
@@ -1410,5 +962,12 @@ class ReservaController {
             }else{ flash.error = "Ups! Ha ocurrido un error" }
         }catch(e){ flash.error = "Ups! Ha ocurrido un error" }
         redirect(controller: 'reserva', action: 'show', id: id)
+    }
+
+    def mesas(){
+        String header = request.getHeader("Authorization");
+        if(header != null && header.startsWith("Bearer"))
+            return header.replace("Bearer ", "");
+        return 0
     }
 }

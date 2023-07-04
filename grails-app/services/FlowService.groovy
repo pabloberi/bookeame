@@ -1,19 +1,11 @@
 
-import auth.User
 import gestion.General
-import grails.converters.JSON
 import grails.gorm.transactions.Transactional
-import grails.plugin.springsecurity.annotation.Secured
-import groovy.json.JsonBuilder
+
 import groovy.json.JsonSlurper
-import io.micrometer.core.ipc.http.HttpSender
-import org.apache.tomcat.websocket.WsWebSocketContainer
-import org.grails.web.json.JSONObject
-import org.springframework.web.bind.annotation.RequestBody
+
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
-import javax.validation.constraints.Email
-import javax.xml.ws.Response
 import java.nio.charset.StandardCharsets
 import java.security.InvalidKeyException
 import java.security.NoSuchAlgorithmException
@@ -172,20 +164,4 @@ class FlowService {
         conf.save()
     }
 
-
-
-//    String setearFecha(){
-//        Date hoy = new Date()
-//        Calendar c = Calendar.getInstance()
-//        c.setTime(hoy)
-//
-//        Formatter month = new Formatter()
-//        Formatter day = new Formatter()
-//
-//        String annio = c.get(Calendar.YEAR).toString()
-//        String mes = month.format("%02d", c.get(Calendar.MONTH) + 1)
-//        String dia = day.format("%02d", c.get(Calendar.DAY_OF_MONTH))
-//
-//        return annio + "-" + mes + "-" + dia
-//    }
 }

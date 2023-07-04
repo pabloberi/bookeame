@@ -2,6 +2,8 @@
 
 import grails.gorm.transactions.Transactional
 
+import java.text.SimpleDateFormat
+
 @Transactional
 class FormatoFechaUtilService {
 
@@ -26,6 +28,26 @@ class FormatoFechaUtilService {
                 return "viernes"
             case 7:
                 return "sabado"
+        }
+    }
+
+    String formatFecha(Date fecha, String patron){
+        try{
+            SimpleDateFormat sdf = new SimpleDateFormat(patron)
+            def aux = sdf.format(fecha)
+            return aux
+        }catch(e){
+            log.error(e)
+        }
+    }
+
+    Date stringToDateConverter(String fecha, String patron){
+        try{
+            SimpleDateFormat sdf = new SimpleDateFormat(patron)
+            def aux = sdf.parse(fecha)
+            return aux
+        }catch(e){
+            log.error(e)
         }
     }
 }
