@@ -75,7 +75,7 @@
                 <g:if test="${prepago && session['link'] == null}">
                     <div class="col-md-5 ">
                         <button id="reservaPrepago" type="submit" class="btn btn-info btn-block btn-md mt-3" name="tipoReservaId" value="2"
-                                onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">
+                                onclick="return confirm('${message(code: 'aviso.cargo.adicional.prepago', default: 'Are you sure?')}');">
                             Pago En Línea
                         </button>
                     </div>

@@ -42,7 +42,6 @@ class ReservaController {
     def springSecurityService
     def tokenStorageService
     def flowService
-    def tempService
     def groovyPageRenderer
     def utilService
     def validaPermisosReservaUtilService
@@ -110,12 +109,12 @@ class ReservaController {
                 ]
             }else{
                 flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
-                render view: '/error'
+                redirect(controller: 'home', action: 'dashboard')
             }
         }catch(e){
             log.error(e)
             flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
-            render view: '/error'
+            redirect(controller: 'home', action: 'dashboard')
         }
     }
 
@@ -137,12 +136,23 @@ class ReservaController {
                 }
             }else{
                 flash.error = crearReservaRs.getMensaje()
-                redirect(controller: 'home', action: 'dashboard')
+                redirect(controller: 'reserva', action: 'create',
+                        params: [
+                                fecha: params?.fechaReserva,
+                                moduloId: params?.moduloId,
+                                id: params?.espacioId
+
+                        ])
             }
         }catch(e){
             flash.error = "Ha ocurrido un error inesperado."
             log.error("Ha ocurrido un error inesperado.")
-            redirect(controller: 'home', action: 'dashboard')
+            redirect(controller: 'reserva', action: 'create', params: [
+                    fecha: params?.fechaReserva,
+                    moduloId: params?.moduloId,
+                    id: params?.espacioId
+
+            ])
         }
     }
 
@@ -499,84 +509,6 @@ class ReservaController {
             }
         }catch(e) {}
     }
-
-//
-//    @Secured(['ROLE_SUPERUSER','ROLE_USER'])
-//    def reservaPrepago(){
-//        boolean exito = true
-//        Long moduloId = params?.moduloId?.toLong()
-//        String fechaReserva = params?.fechaReservaHidden
-//        Long espacioId = params?.espacioId?.toLong()
-//        String responsePago
-//        ReservaTemp reserva = new ReservaTemp()
-//        if( moduloId != null && fechaReserva != null ){
-//            Modulo modulo = Modulo.findById(moduloId)
-//            User user = springSecurityService.getCurrentUser()
-//
-//            if( modulo != null && user != null && fechaReserva != null ){
-//                if( modulo?.valor > General.findByNombre('valorMinFlow')?.valor?.toInteger() ?: 0 ){
-//                    def pattern = "dd-MM-yyyy"
-//                    def date = new SimpleDateFormat(pattern).parse(fechaReserva)
-//                    if( reservaDisponible(modulo, fechaReserva) ) {
-//                        try {
-//                            reserva.usuario = user
-//                            reserva.fechaReserva = date
-//                            reserva.horaInicio = modulo?.horaInicio
-//                            reserva.horaTermino = modulo?.horaTermino
-//                            reserva.valor = modulo?.valor
-//                            reserva.espacio = modulo?.espacio
-//                            reserva.tipoReserva = TipoReserva.findById(2)
-//                            reserva.estadoReserva = EstadoReserva.findById(2)
-//                            reservaTempService.save(reserva)
-//
-//                        } catch (e) {
-//                            exito = false
-//                            flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-//                        }
-//                        responsePago = pagarReserva(reserva)
-//                        println(responsePago)
-//                        int tiempoTrigger = 15
-//                        tempService.triggerReservaTemp(reserva?.id, tiempoTrigger)
-//                    }else{
-//                        exito = false
-//                        flash.error = "Módulo momentaneamente no disponible."
-//                    }
-//                }else{
-//                    exito = false
-//                    flash.error = "Valor de la reserva no permite pagos en línea."
-//                }
-//            }else{
-//                exito = false
-//                flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-//            }
-//        }else{
-//            exito = false
-//            flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-//        }
-//
-//        if( responsePago == "error" ){
-//            println (responsePago)
-//            exito = false
-//            flash.error = "Ups! un error ha ocurrido"
-//        }
-//
-//        if( exito ){
-////            flash.message = "Reserva creada exitosamente."
-//            session['link'] = responsePago
-//            session['temp'] = reserva
-//            redirect(url: responsePago)
-//        }else{
-//            if( reserva ){
-//                try{
-//                    reservaTempService.delete(reserva?.id)
-//                }catch(e){}
-//            }
-//            redirect (controller: "reserva", action: 'crearReservaUser', id: espacioId)
-//        }
-////        redirect responsePago
-//    }
-
-
 
     @Secured(['permitAll()'])
     def confirmFlow(String token){

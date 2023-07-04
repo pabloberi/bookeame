@@ -35,7 +35,7 @@ class ReservaUtilService {
     def validadorPermisosUtilService
     def formatoFechaUtilService
     def springSecurityService
-    def tempService
+
     UserService userService
     ReservaTempService reservaTempService
     PrepagoUtilService prepagoUtilService
@@ -364,8 +364,6 @@ class ReservaUtilService {
                 }
                 responsePago = prepagoUtilService?.pagarReserva(reservaTemp)
                 println(responsePago)
-                int tiempoTrigger = 15
-                tempService.triggerReservaTemp(reservaTemp?.id, tiempoTrigger)
 
                 if( responsePago == "error" ){
                     crearReservaRs.setCodigo("01")
