@@ -1,5 +1,6 @@
 <%@ page import="configuracionEmpresa.ConfiguracionEmpresa; gestion.General" %>
 <!DOCTYPE html>
+
 <html>
     <head>
         <meta name="layout" content="dashboard" />
@@ -7,6 +8,7 @@
         <title><g:message code="default.show.label" args="[entityName]" /></title>
     </head>
     <body>
+    <asset:stylesheet src="/formplugins/select2/select2.bundle.css"/>
 
     <sec:ifAnyGranted roles="ROLE_USER">
         <g:if test="${reserva?.tipoReserva?.id == 1 && reserva?.estadoReserva?.id == 1 }">
@@ -16,94 +18,42 @@
         </g:if>
     </sec:ifAnyGranted>
 
-    <div id="show-reserva" class="content scaffold-show" role="main">
-            <div id="panel-7" class="panel">
-                <div class="panel-hdr">
-                    <h2>
-                        Ficha <span class="fw-300"><i>Reserva</i></span>
-                    </h2>
-                    <div class="panel-toolbar">
-                        <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
-                        <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
-                        <button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="Close"></button>
+    <div id="panel-11" class="panel">
+        <div class="panel-hdr">
+            <h2>
+                Reserva <span class="fw-300"><i class="fal fa-calendar-alt"></i></span>
+            </h2>
+            <div class="panel-toolbar">
+                <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+                <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+                <button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="Close"></button>
+            </div>
+        </div>
+        <div class="panel-container show">
+            <div class="panel-content">
+                <div class="border px-3 pt-3 pb-0 rounded">
+                    <ul class="nav nav-pills" role="tablist">
+                        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#ficha"><i class="fal fa-list mr-1"></i>Ficha</a></li>
+                        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#registro_pago"><i class="fal fa-dollar-sign mr-1"></i>Registro de Pagos</a></li>
+                    </ul>
+                    <div class="tab-content py-3 mt-4">
+                        <div class="tab-pane fade show active" id="ficha" role="tabpanel">
+                            <g:render template="fichaReserva"/>
+                        </div>
+                        <div class="tab-pane fade" id="registro_pago" role="tabpanel">
+                            <g:render template="registroPagos"/>
+                        </div>
                     </div>
                 </div>
-                    <div class="panel-container show">
-                        <table class="table">
-                            <tbody>
-                            <tr class="prop">
-                                <td valign="top" class="name"><g:message code="reserva.valor.label" default="Código" /></td>
-                                <td valign="top" class="value">${fieldValue(bean: reserva, field: "codigo")}</td>
-                            </tr>
-                            <tr class="prop">
-                                <td valign="top" class="name"><g:message code="reserva.fechaReserva.label" default="Fecha de Reserva" /></td>
-                                <td valign="top" class="value"><g:formatDate type="date" style="FULL" date="${reserva?.fechaReserva}"/></td>
-                            </tr>
-                            <tr class="prop">
-                                <td valign="top" class="name"><g:message code="reserva.fechaReserva.label" default="Horario" /></td>
-                                <td valign="top" class="value">${reserva?.horaInicio} - ${reserva?.horaTermino}</td>
-                            </tr>
-                            <tr class="prop">
-                                <td valign="top" class="name"><g:message code="reserva.valor.label" default="Valor" /></td>
-                                <td valign="top" class="value">$ ${fieldValue(bean: reserva, field: "valor")} .-</td>
-                            </tr>
-                            <tr class="prop">
-                                <td valign="top" class="name"><g:message code="reserva.espacio.label" default="Espacio" /></td>
-                                <td valign="top" class="value">${fieldValue(bean: reserva, field: "espacio")}</td>
-                            </tr>
-                            <tr class="prop">
-                                <td valign="top" class="name"><g:message code="reserva.estadoReserva.label" default="Estado Reserva" /></td>
-                                <td valign="top" class="value">${fieldValue(bean: reserva, field: "estadoReserva")}</td>
-                            </tr>
-                            <tr class="prop">
-                                <td valign="top" class="name"><g:message code="reserva.tipoReserva.label" default="Tipo Reserva" /></td>
-                                <td valign="top" class="value">${fieldValue(bean: reserva, field: "tipoReserva")}</td>
-                            </tr>
-                            <sec:ifAnyGranted roles="ROLE_SUPERUSER, ROLE_ADMIN">
-                                <tr class="prop">
-                                    <td valign="top" class="name"><g:message code="reserva.usuario.label" default="Usuario" /></td>
-                                    <td valign="top" class="value">${fieldValue(bean: reserva, field: "usuario")}</td>
-                                </tr>
-                                <tr class="prop">
-                                    <td valign="top" class="name"><g:message code="reserva.usuario.label" default="Celular Usuario" /></td>
-                                    <td valign="top" class="value">${reserva?.usuario?.celular}</td>
-                                </tr>
-                                <tr class="prop">
-                                    <td valign="top" class="name"><g:message code="reserva.usuario.label" default="Nombre" /></td>
-                                    <td valign="top" class="value">${reserva?.usuario?.nombre} ${reserva?.usuario?.apellidoPaterno}</td>
-                                </tr>
-                            </sec:ifAnyGranted>
-                            <sec:ifAnyGranted roles="ROLE_SUPERUSER, ROLE_USER">
-                                <tr class="prop">
-                                    <td valign="top" class="name"><g:message code="mapa.enabled.label" default="Dirección" /></td>
-                                    <td valign="top" class="value" >${reserva?.espacio?.direccion}, ${reserva?.espacio?.comuna}, ${reserva?.espacio?.comuna?.provincia?.region}</td>
-                                </tr>
-                                <tr class="prop">
-                                    <td valign="top" class="name"><g:message code="mapa.enabled.label" default="Contacto Empresa" /></td>
-                                    <td valign="top" class="value" >${configuracion?.fono ?: 'N/A'}</td>
-                                </tr>
-
-                            </sec:ifAnyGranted>
-                            </tbody>
-                        </table>
-                        <g:render template="botoneraAdmin" model="[ hoy: hoy,
-                                                                    reserva: reserva,
-                                                                    configuracion: configuracion,
-                                                                    esReservaVigente: esReservaVigente,
-                                                                    esReservaHistorica: esReservaHistorica,
-                                                                    esReservaPosPagoPendiente: esReservaPosPagoPendiente
-                        ]"/>
-                        <g:render template="botoneraUser" model="[ hoy: hoy,
-                                                                    reserva: reserva,
-                                                                    configuracion: configuracion,
-                                                                    puedeCancelar: puedeCancelar,
-                                                                    puedeReagendar: puedeReagendar
-                        ]"/>
-                        <g:render template="reagendar" model="[reserva: reserva, configuracion: configuracion]"/>
-                    </div>
             </div>
+        </div>
     </div>
+
+    <asset:javascript src="/formplugins/select2/select2.bundle.js"/>
+
     <script>
+        $('.select2').select2();
+
         <g:if test="${flash.message}">
         $(document).ready( function () {
             toastr.success("${flash.message}");
