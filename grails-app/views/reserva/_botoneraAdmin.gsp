@@ -30,25 +30,4 @@
             </div>
         </g:else>
     </g:if>
-    <g:if test="${esReservaHistorica}">
-        <div class="row" >
-            <g:if test="${!reserva?.evaluacion?.evaluacionToUser?.nota}">
-                <div class="col-md-6" style="margin-bottom: 1em">
-                    <a href="#" data-toggle="modal" data-target="#modalEvaluacionUser${reserva?.id}">
-                        <button class="btn btn-block btn-info btn-lg mt-3">Evaluar</button>
-                    </a>
-                </div>
-                <g:render template="/evaluacion/evaluacionToUser" model="[reserva: reserva]"/>
-
-            </g:if>
-            <g:if test="${!reserva?.valorFinal}">
-                <div class="col-md-6" style="margin-bottom: 1em">
-                    <a href="#" data-toggle="modal" data-target="#modalValorFinal${reserva?.id}">
-                        <button class="btn btn-block btn-secondary btn-lg mt-3">Valor Final</button>
-                    </a>
-                </div>
-                <g:render template="/reserva/setValorFinal" model="[reserva: reserva]"/>
-            </g:if>
-        </div>
-    </g:if>
 </sec:ifAnyGranted>

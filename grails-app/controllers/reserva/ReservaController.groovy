@@ -16,7 +16,6 @@ import espacio.EspacioService
 import evaluacion.Evaluacion
 import evaluacion.EvaluacionService
 import evaluacion.EvaluacionToEspacio
-import evaluacion.EvaluacionToUser
 import gestion.NotificationService
 import grails.plugin.springsecurity.annotation.Secured
 
@@ -392,56 +391,6 @@ class ReservaController {
 
         if( exito ){ flash.message = "Reserva cancelada correctamente!" }
         redirect( controller: 'reserva', action: 'solicitudReservaAdmin')
-    }
-
-    @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
-    def evaluacionUser(Long id){
-        boolean exito = true
-        Reserva reserva = Reserva.findById(id)
-        if(reserva){
-            try{
-                Evaluacion evaluacion = reserva?.evaluacion ?: new Evaluacion()
-                if( reserva?.tipoReservaId == 2 ){
-                    evaluacion.evaluacionToUser = params?.notaUser?.toInteger() == 1 ? EvaluacionToUser.findById( 2 ) : EvaluacionToUser.findById( params?.notaUser?.toInteger() )
-                }else{
-                    evaluacion.evaluacionToUser = EvaluacionToUser.findById(params?.notaUser.toInteger())
-                }
-                evaluacion.comentarioToUser = params?.comentarioUser ? params?.comentarioUser : "No Registra"
-
-                evaluacionService.save(evaluacion)
-                reserva.evaluacion = evaluacion
-                reservaService.save(reserva)
-            }catch(e){
-                flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-                exito = false
-            }
-        }else{
-            flash.error = "Ups! Ha ocurrido un error. Por favor intenta más tarde."
-            exito = false
-        }
-
-        if( exito ){
-            flash.message = "Muchas Gracias por completar la evaluación."
-            actualizarNotaUser(reserva?.usuario, reserva?.evaluacion?.evaluacionToUser?.nota)
-        }
-        redirect(controller: 'reserva', action: 'show', id: id)
-    }
-
-    @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
-    void actualizarNotaUser(User user, Integer nota){
-        try{
-            if(user != null && nota != null){
-                user.indiceAcumulado = nota + user?.indiceAcumulado
-                user.indiceContador = user?.indiceContador + 1
-                if(user?.indiceConfianza == 0){
-                    user.indiceConfianza = nota
-                }else{
-                    def promedio = user?.indiceAcumulado / user?.indiceContador
-                    user.indiceConfianza = promedio.round(1)
-                }
-                userService.save(user)
-            }
-        }catch(e){}
     }
 
     @Secured(['ROLE_SUPERUSER','ROLE_USER'])
@@ -877,21 +826,6 @@ class ReservaController {
         return reservaList?.size() <= 0
     }
 
-    @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
-    def setValorFinal(Long id){
-        try{
-            Reserva reserva = Reserva.get(id)
-            if( validadorPermisosUtilService?.validarRelacionReservaUser(reserva?.id) ){
-                Integer aux = params?.valorFinal.toInteger()
-                reserva.valorFinal = reserva?.valor
-                reserva.valor = aux
-                reservaService.save(reserva)
-                flash.message = "Valor Final guardado correctamente."
-            }
-        }catch(e){ flash.error = "Ups! Ha ocurrido un error" }
-        redirect(controller: 'reserva', action: 'show', id: id)
-    }
-
     @Secured(['ROLE_USER','ROLE_SUPERUSER'])
     def cancelarReserva(){
 
@@ -969,5 +903,29 @@ class ReservaController {
         if(header != null && header.startsWith("Bearer"))
             return header.replace("Bearer ", "");
         return 0
+    }
+
+    @Secured(['ROLE_ADMIN','ROLE_SUPERUSER'])
+    def ingresarPago(Long id){
+        try{
+            if( !validadorPermisosUtilService?.validarRelacionReservaUser(id)){
+                render view: '/notFound'
+            }
+            boolean exito = reservaUtilService.registrarPago(
+                    id,
+                    params?.notaUser,
+                    params?.comentarioUser,
+                    params?.valorFinal
+            )
+            if( exito ){
+                flash.message = "Datos guardados con exito!"
+            }else{
+                flash.error = "No hemos podido guardar la información. Por favor intenta más tarde."
+            }
+            redirect(controller: 'reserva', action: 'show', id: id)
+        }catch(e){
+            flash.error = "No hemos podido guardar la información. Por favor intenta más tarde."
+            redirect(controller: 'reserva', action: 'show', id: id)
+        }
     }
 }

@@ -7,10 +7,14 @@ import dto.CrearReservaRs
 import dto.EventoCalendario
 import empresa.Empresa
 import espacio.Espacio
+import evaluacion.Evaluacion
+import evaluacion.EvaluacionService
+import evaluacion.EvaluacionToUser
 import flow.FlowEmpresa
 import gestion.General
 import gestion.NotificationService
 import grails.gorm.transactions.Transactional
+import grails.plugin.springsecurity.annotation.Secured
 import grails.web.mapping.LinkGenerator
 
 import javax.crypto.BadPaddingException
@@ -39,6 +43,7 @@ class ReservaUtilService {
     UserService userService
     ReservaTempService reservaTempService
     PrepagoUtilService prepagoUtilService
+    EvaluacionService evaluacionService
 
     Boolean eliminarReserva(Long id) {
         Boolean responseEliminar = false
@@ -582,5 +587,43 @@ class ReservaUtilService {
         }
     }
 
+    def registrarPago(Long id, String nota, String comentario, String pago){
+        boolean exito = true
+        Reserva reserva = Reserva.findById(id)
+        if(reserva){
+            try{
+                Evaluacion evaluacion = reserva?.evaluacion ?: new Evaluacion()
+
+                if( nota != null && nota.length() > 0){evaluacion.evaluacionToUser = EvaluacionToUser.findById( nota?.toLong() )}
+                if( comentario != null && comentario.length() > 0){evaluacion.comentarioToUser = comentario}
+                if( pago != null && pago.length() > 0){ reserva.valorFinal = pago?.toInteger() }
+
+                evaluacionService.save(evaluacion)
+                reserva.evaluacion = evaluacion
+                reservaService.save(reserva)
+            }catch(e){ exito = false }
+        }else{ exito = false }
+
+        if( exito ){
+            actualizarNotaUser(reserva?.usuario, reserva?.evaluacion?.evaluacionToUser?.nota)
+        }
+        return exito
+    }
+
+    void actualizarNotaUser(User user, Integer nota){
+        try{
+            if(user != null && nota != null){
+                user.indiceAcumulado = nota + user?.indiceAcumulado
+                user.indiceContador = user?.indiceContador + 1
+                if(user?.indiceConfianza == 0){
+                    user.indiceConfianza = nota
+                }else{
+                    def promedio = user?.indiceAcumulado / user?.indiceContador
+                    user.indiceConfianza = promedio.round(1)
+                }
+                userService.save(user)
+            }
+        }catch(e){}
+    }
 
 }
