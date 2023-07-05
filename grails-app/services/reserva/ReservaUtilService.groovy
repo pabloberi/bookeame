@@ -95,7 +95,7 @@ class ReservaUtilService {
                     reservaList = obtenerReservas(espacio, rol)
 
                     eventoList.addAll(
-                            obtenerModulosDispónibles(reservaList, moduloList, dateList)
+                            obtenerModulosDisponibles(reservaList, moduloList, dateList)
                     )
 
                     if( rol == "ADMIN"){
@@ -112,7 +112,7 @@ class ReservaUtilService {
         return eventoList
     }
 
-    def obtenerModulosDispónibles(List<Reserva> reservaList, List<Modulo> moduloList, def dateList){
+    def obtenerModulosDisponibles(List<Reserva> reservaList, List<Modulo> moduloList, def dateList){
         List<EventoCalendario> eventoList = []
         for( int i = 0; i < moduloList?.size(); i++){
             for( int j = 0; j < dateList?.size(); j++){

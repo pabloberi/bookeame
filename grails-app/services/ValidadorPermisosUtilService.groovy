@@ -82,6 +82,11 @@ class ValidadorPermisosUtilService {
         }
     }
 
+    Boolean validarRelacionEmpresaUser(Long empresaId){
+        User user = springSecurityService.getCurrentUser()
+        return Empresa.findByUsuario(user).id == empresaId
+    }
+
     Boolean validarRelacionEspacioModulo(Modulo modulo, Espacio espacio){
         if( modulo && espacio){
             if( modulo?.espacio?.id == espacio?.id ){

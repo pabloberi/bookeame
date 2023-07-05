@@ -40,9 +40,11 @@
                         <div class="tab-pane fade show active" id="ficha" role="tabpanel">
                             <g:render template="fichaReserva"/>
                         </div>
-                        <div class="tab-pane fade" id="registro_pago" role="tabpanel">
-                            <g:render template="registroPagos"/>
-                        </div>
+                        <sec:ifAnyGranted roles="ROLE_ADMIN">
+                            <div class="tab-pane fade" id="registro_pago" role="tabpanel">
+                                <g:render template="registroPagos"/>
+                            </div>
+                        </sec:ifAnyGranted>
                     </div>
                 </div>
             </div>
