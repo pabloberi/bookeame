@@ -41,15 +41,15 @@
 				</div>
 			</div>
 
-			<div class="form-group">
-				<label class="form-label" for="valor">Duración</label>
-				<div class="input-group">
-					<div class="input-group-prepend">
-						<span class="input-group-text"></span>
-					</div>
-					<g:field type="number" id="duracion" min="1" name="duracion" class="form-control" placeholder="Duración del Servicio" required="" value="${servicio?.duracion}" onkeyup="this.value=Numeros(this.value)"/>
-				</div>
-			</div>
+%{--			<div class="form-group">--}%
+%{--				<label class="form-label" for="valor">Duración</label>--}%
+%{--				<div class="input-group">--}%
+%{--					<div class="input-group-prepend">--}%
+%{--						<span class="input-group-text"></span>--}%
+%{--					</div>--}%
+%{--					<g:field type="number" id="duracion" min="1" name="duracion" class="form-control" placeholder="Duración del Servicio" required="" value="${servicio?.duracion}" onkeyup="this.value=Numeros(this.value)"/>--}%
+%{--				</div>--}%
+%{--			</div>--}%
 
 
 			<div class="row no-gutters">

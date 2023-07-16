@@ -13,8 +13,7 @@
         <div class="panel-container show">
             <div class="panel-content">
                 <div class="panel-tag">
-                    Este gráfico muestra los horarios más concurridos.
-                    <small>Sólo se consideran las reservas en las cuales se evaluó al usuario.</small>
+                    Este gráfico muestra los horarios más concurridos por tus clientes.
                 </div>
                 <div id="flot-bar" style="width:100%; height:300px;"></div>
             </div>

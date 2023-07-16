@@ -13,9 +13,9 @@
         </div>
         <div class="panel-container show">
             <div class="panel-content">
-                <div class="panel-tag">
-                    Sólo se consideran las reservas en las cuales se evaluó al usuario.
-                </div>
+%{--                <div class="panel-tag">--}%
+%{--                    Sólo se consideran las reservas en las cuales se evaluó al usuario.--}%
+%{--                </div>--}%
 
                 <div class="form-group row">
                     <div class="col-sm-12 col-md-4 col-lg-4 pr-1">

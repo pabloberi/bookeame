@@ -7,6 +7,7 @@ import evaluacion.Evaluacion
 import flow.FlowEmpresa
 import gestion.NotificationService
 import grails.util.Holders
+import servicios.ServicioReserva
 
 class Reserva {
 
@@ -31,8 +32,11 @@ class Reserva {
 
     Date dateCreated
 
+    static hasMany = [servicioReserva: ServicioReserva]
+
 //    static belongsTo = [reservaPlinificada: ReservaPlanificada]
     static constraints = {
+        servicioReserva nullable: true
         usuario nullable: true
         fechaReserva nullable: true
         tipoReserva nullable: true

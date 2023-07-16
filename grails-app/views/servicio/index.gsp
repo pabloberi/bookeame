@@ -30,7 +30,7 @@
                                 <th>Nombre</th>
                                 <th>Descripción</th>
                                 <th>Valor</th>
-                                <th>Duracion</th>
+%{--                                <th>Duracion</th>--}%
                                 <th>Habilitado</th>
                             </tr>
                             </thead>
@@ -47,7 +47,7 @@
                                     <td>${servicio?.nombre}</td>
                                     <td>${servicio?.descripcion}</td>
                                     <td>$ ${servicio?.valor}</td>
-                                    <td>${servicio?.duracion} minutos</td>
+%{--                                    <td>${servicio?.duracion} minutos</td>--}%
                                     <td>${formatBoolean(boolean: servicio?.habilitado, true: "Habilitado", false: "Deshabilitado")}</td>
                                 </tr>
                             </g:each>

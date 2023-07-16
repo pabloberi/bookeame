@@ -34,7 +34,9 @@
                 <div class="border px-3 pt-3 pb-0 rounded">
                     <ul class="nav nav-pills" role="tablist">
                         <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#ficha"><i class="fal fa-list mr-1"></i>Ficha</a></li>
-                        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#registro_pago"><i class="fal fa-dollar-sign mr-1"></i>Registro de Pagos</a></li>
+                        <sec:ifAnyGranted roles="ROLE_ADMIN">
+                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#registro_pago"><i class="fal fa-dollar-sign mr-1"></i>Registro de Pagos</a></li>
+                        </sec:ifAnyGranted>
                     </ul>
                     <div class="tab-content py-3 mt-4">
                         <div class="tab-pane fade show active" id="ficha" role="tabpanel">

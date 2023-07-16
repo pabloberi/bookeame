@@ -15,13 +15,10 @@
 <asset:stylesheet src="/formplugins/bootstrap-datepicker/bootstrap-datepicker.css"/>
 
 
-<div style="margin-bottom: 2em;">
-    <a href="${createLink(controller: 'reserva', action: 'reservaPlanificada', id: espacio?.id)}"><button class="btn btn-success" type="button">Reservas Masivas</button></a>
-</div>
 <div id="panel-7" class="panel">
     <div class="panel-hdr">
         <h2>
-            Reserva <span class="fw-300"><i>${espacio?.nombre}</i></span>
+            Calendario <span class="fw-300"><i>${espacio?.nombre}</i></span>
         </h2>
         <div class="panel-toolbar">
             <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
@@ -29,7 +26,9 @@
             <button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="Close"></button>
         </div>
     </div>
+
     <div class="panel-container show">
+
         <div class="panel-content row">
             <div class="col-xl-2"></div>
             <div id="calendar" class="col-xl-8"></div>
@@ -115,7 +114,6 @@
                 </div>
             </div>
             <!-- Modal end -->
-
         </div>
 
     </div>
@@ -205,6 +203,7 @@
                         fechaReserva: "${evento?.getFechaReserva() ?: 'n/A'}",
                         valor: "${evento?.getValor() ?: 'n/A'}",
                         modulo: "${evento?.getModulo() ?: 'n/A' }",
+                        urlSave: "${evento.getUrlSave() ?: "n/A"}",
 
                         <sec:ifAnyGranted roles="ROLE_ADMIN">
                             usuario: "${evento?.getUsuario() ?: 'n/A'}",
@@ -219,14 +218,12 @@
             eventClick:  function(info) {
                 <sec:ifAnyGranted roles="ROLE_USER">
                     if(info.event.title === 'Disponible'){
-                        var params = "fecha=" + info.event.extendedProps.fechaReserva + "&moduloId=" + info.event.extendedProps.modulo;
-                        window.location.href = "${createLink(controller: 'reserva', action: 'create', id: espacio?.id)}?" +params ;
+                        window.location.href = decodeURIComponent(info.event.extendedProps.urlSave);
                     }
                 </sec:ifAnyGranted>
                 <sec:ifAnyGranted roles="ROLE_ADMIN">
                     if(info.event.title === 'Disponible'){
-                        var params = "fecha=" + info.event.extendedProps.fechaReserva + "&moduloId=" + info.event.extendedProps.modulo;
-                        window.location.href = "${createLink(controller: 'reserva', action: 'create', id: espacio?.id)}?" +params ;
+                        window.location.href = decodeURIComponent(info.event.extendedProps.urlSave);
                     }else{
                         if( info.event.title=== 'Reservado' ){
                             $('#calendarModal .modal-title .js-event-title').text(info.event.title);
@@ -257,6 +254,8 @@
         });
         calendar.render();
     });
+
+    $('.select2').select2();
 
     <g:if test="${flash.message}">
     $(document).ready( function () {

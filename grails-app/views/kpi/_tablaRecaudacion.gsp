@@ -6,7 +6,7 @@
                     Recaudación
                 </span>
                 <span class="fw-500 fs-xl d-block color-primary-500">
-                    $ ${g.formatNumber(format: "###,##0", number: reservaList?.sum { it?.valor }) }
+                    $ ${g.formatNumber(format: "###,##0", number: recaudacion) }
                 </span>
             </div>
         </div>
@@ -42,7 +42,7 @@
                     <g:each in="${reservaList}" status="i" var="reserva">
                         <tr>
                             <td><g:formatDate format="dd-MM-yyyy" date="${reserva?.fechaReserva}"/> ${reserva?.horaInicio} - ${reserva?.horaTermino}</td>
-                            <td><g:formatNumber  class="form-control"  number="${reserva?.valor}"  format="\$ ###,###,###"  /></td>
+                            <td><g:formatNumber  class="form-control"  number="${reserva?.valorFinal ?: 0}"  format="\$ ###,###,###"  /></td>
                             <td>${reserva?.espacio}</td>
                             <td>${reserva?.estadoReserva}</td>
                             <td>${reserva?.tipoReserva}</td>

@@ -16,6 +16,8 @@ import gestion.NotificationService
 import grails.gorm.transactions.Transactional
 import grails.plugin.springsecurity.annotation.Secured
 import grails.web.mapping.LinkGenerator
+import servicios.ServicioReserva
+import servicios.ServicioUtilService
 
 import javax.crypto.BadPaddingException
 import javax.crypto.Cipher
@@ -44,6 +46,7 @@ class ReservaUtilService {
     ReservaTempService reservaTempService
     PrepagoUtilService prepagoUtilService
     EvaluacionService evaluacionService
+    ServicioUtilService servicioUtilService
 
     Boolean eliminarReserva(Long id) {
         Boolean responseEliminar = false
@@ -238,6 +241,10 @@ class ReservaUtilService {
             evento.setHoraTermino(modulo?.horaTermino)
             evento.setFechaReserva(fecha[3])
             evento.setValor('$ ' + modulo?.valor +' .-')
+            evento.setUrlSave(
+                    grailsLinkGenerator.link(controller: 'reserva', action: 'create', id: modulo?.espacio?.id) +
+                            "?fecha=${fecha[3]}" + URLEncoder.encode("&", "UTF-8") + "moduloId=${modulo?.id}"
+            )
         }catch(e){
             log.error(e)
         }
@@ -277,7 +284,7 @@ class ReservaUtilService {
             if( validarDatosParaReserva( modulo?.horaInicio, modulo?.horaTermino, modulo?.valor,
                     espacio?.id, fechaString, params?.code ) && reservaDisponible(modulo, fechaString)  ){
                 if( validadorPermisosUtilService.esRoleUser() ){
-                    return crearReservaUsuario( conf, modulo, espacio, fecha, tipoReservaId )
+                    crearReservaRs = crearReservaUsuario( conf, modulo, espacio, fecha, tipoReservaId )
                 }
                 if( validadorPermisosUtilService.esRoleAdmin() ){
                     User user = new User()
@@ -301,7 +308,7 @@ class ReservaUtilService {
                         }
 
                     }
-                    return crearReservaEmpresa( modulo, espacio, fecha, tipoReservaId, user )
+                    crearReservaRs = crearReservaEmpresa( modulo, espacio, fecha, tipoReservaId, user )
                 }
             }else{
                 crearReservaRs.setCodigo("01")
@@ -314,6 +321,9 @@ class ReservaUtilService {
             crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
             log.error("Ha ocurrido un error inesperado")
         }
+         if( crearReservaRs.getReservaId() ){
+             servicioUtilService.guardarServicioEnReserva(params?.servicio?.toLong(), crearReservaRs.getReservaId() )
+         }
         return crearReservaRs
     }
 
@@ -391,7 +401,6 @@ class ReservaUtilService {
         return crearReservaRs
     }
 
-
     def crearReservaEmpresa( Modulo modulo, Espacio espacio, Date fecha, Long tipoReservaId,User user){
         CrearReservaRs crearReservaRs = new CrearReservaRs()
         crearReservaRs.setCodigo("01")
@@ -426,36 +435,40 @@ class ReservaUtilService {
         c.setTime(fechaReserva)
         c.set(Calendar.MINUTE, modulo?.horaInicio.substring(3,5).toInteger())
         c.set(Calendar.HOUR_OF_DAY, modulo?.horaInicio.substring(0,2).toInteger())
+        c.set(Calendar.SECOND, 1)
+        Calendar d = Calendar.getInstance()
+        d.setTime(fechaReserva)
+        d.set(Calendar.MINUTE, modulo?.horaTermino.substring(3,5).toInteger())
+        d.set(Calendar.HOUR_OF_DAY, modulo?.horaTermino.substring(0,2).toInteger())
+        d.add(Calendar.MINUTE, -1)
         if( c.getTime() >= hoy ){
-            c.set(Calendar.MILLISECOND, 0)
-            c.set(Calendar.SECOND, 0)
-            c.set(Calendar.MINUTE, 0)
-            c.set(Calendar.HOUR_OF_DAY, 0)
-
             List<Reserva> reservaList = Reserva.createCriteria().list {
+                or{
+                    between('inicioExacto', c.getTime(),d.getTime())
+                    between('terminoExacto', c.getTime(),d.getTime())
+                }
                 and{
-                    eq('fechaReserva', c.getTime())
                     estadoReserva {
                         ne('id', 3l)
                     }
                     espacio{
                         eq('id', modulo?.espacio?.id)
                     }
-                    eq('horaInicio', modulo?.horaInicio)
-                    eq('horaTermino', modulo?.horaTermino)
                 }
             }
+
             List<ReservaTemp> reservaTempList = ReservaTemp.createCriteria().list {
+                or{
+                    between('inicioExacto', c.getTime(),d.getTime())
+                    between('terminoExacto', c.getTime(),d.getTime())
+                }
                 and{
-                    eq('fechaReserva', c.getTime())
                     estadoReserva {
                         ne('id', 3l)
                     }
                     espacio{
                         eq('id', modulo?.espacio?.id)
                     }
-                    eq('horaInicio', modulo?.horaInicio)
-                    eq('horaTermino', modulo?.horaTermino)
                 }
             }
 
@@ -624,6 +637,24 @@ class ReservaUtilService {
                 userService.save(user)
             }
         }catch(e){}
+    }
+
+    def getValorReserva(Long reservaId){
+        try{
+            List<ServicioReserva> servicioReservaList = servicioUtilService.getServiciosPorReserva(reservaId)
+            if(servicioReservaList?.size() > 0 ){
+                int contador = 0
+                for( srv in servicioReservaList ){
+                    contador = contador + srv?.valor
+                }
+                return contador
+            }else{
+                return Reserva.get(reservaId)?.valor
+            }
+        }catch(e){
+            return 0
+        }
+
     }
 
 }

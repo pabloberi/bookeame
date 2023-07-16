@@ -36,7 +36,6 @@
                                     <th>Estado</th>
                                     <th>Tipo Reserva</th>
                                     <th>Usuario</th>
-                                    <th>Evaluación</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -55,21 +54,6 @@
                                         <td>${reserva?.estadoReserva}</td>
                                         <td>${reserva?.tipoReserva}</td>
                                         <td>${reserva?.usuario}</td>
-                                        <g:if test="${reserva?.estadoReservaId != 2 }">
-                                            <td>N/A</td>
-                                        </g:if>
-                                        <g:else>
-                                            <g:if test="${reserva?.evaluacion?.evaluacionToUser?.nota}">
-                                                <td>OK</td>
-                                            </g:if>
-                                            <g:else>
-                                                <td><a href="${createLink(controller: 'reserva', action: 'show', id: reserva?.id)}"><u>Pendiente</u></a></td>
-
-                                            %{--                                                <td><a href="#" data-toggle="modal" data-target="#modalEvaluacionUser${reserva?.id}"><u>Pendiente</u></a></td>--}%
-%{--                                                <g:render template="/evaluacion/evaluacionToUser" model="[reserva: reserva]"/>--}%
-                                            </g:else>
-                                        </g:else>
-
                                     </tr>
                                 </g:each>
                                 </tbody>

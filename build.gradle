@@ -74,18 +74,13 @@ dependencies {
     implementation "org.hibernate:hibernate-core:5.6.8.Final"
     implementation "org.grails.plugins:gsp"
     implementation "org.grails.plugins:spring-security-core:4.0.0.RC3"
+
     implementation "org.grails.plugins:fields:3.0.0.RC1"
     implementation 'org.grails.plugins:mail:3.0.0'
-//    implementation 'cljsjs:jsqr:1.2.0-0'
-
-//    implementation 'org.grails:grails-datastore-rest-client:6.1.9.RELEASE'
     implementation "org.grails:grails-datastore-rest-client:6.1.12.RELEASE"
-//    implementation 'org.grails:grails-datastore-rest-client:6.1.12.BUILD-SNAPSHOT'
-//    implementation "com.google.android.gcm:gcm-server:1.0.2"
     console "org.grails:grails-console"
     profile "org.grails.profiles:web"
     runtimeOnly "org.glassfish.web:el-impl:2.2.1-b05"
-//    runtimeOnly 'org.glassfish.web:el-impl:2.2'
     runtimeOnly "com.h2database:h2"
     runtimeOnly "org.apache.tomcat:tomcat-jdbc"
     runtimeOnly 'javax.xml.bind:jaxb-api:2.3.1'

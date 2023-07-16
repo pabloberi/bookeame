@@ -6,7 +6,8 @@
                 Recaudación neta
             </span>
             <span class="fw-500 fs-xl d-block color-primary-500">
-                $ ${g.formatNumber(format: "###,##0", number: reservaList?.sum { it?.valor }) }
+                $ ${g.formatNumber(format: "###,##0",
+                        number: recaudacionNeta) }
             </span>
         </div>
     </div>
@@ -16,7 +17,7 @@
                 Recaudación comisión
             </span>
             <span class="fw-500 fs-xl d-block color-danger-500">
-                $ ${g.formatNumber(format: "###,##0", number: reservaList?.sum { it?.valorComisionFlow } ) }
+                $ ${g.formatNumber(format: "###,##0", number: recaudacionComision ) }
             </span>
         </div>
     </div>
@@ -30,15 +31,17 @@
                 <tr>
                     <th>Fecha Reserva</th>
                     <th>Monto Reserva</th>
-                    <th>Comisión Cobrada</th>
+                    <th>Comisión</th>
+                    <th>Cobro Total</th>
                 </tr>
                 </thead>
                 <tbody>
                 <g:each in="${reservaList}" status="i" var="reserva" >
                     <tr>
                         <td><g:formatDate format="dd-MM-yyyy" date="${reserva?.fechaReserva}"/></td>
-                        <td>$ ${g.formatNumber(format: "###,##0", number: reserva?.valor)}</td>
+                        <td>$ ${g.formatNumber(format: "###,##0", number: reserva?.valorFinal - reserva?.valorComisionFlow)}</td>
                         <td>$ ${g.formatNumber(format: "###,##0", number: reserva?.valorComisionFlow)}</td>
+                        <td>$ ${g.formatNumber(format: "###,##0", number: reserva?.valorFinal)}</td>
                     </tr>
                 </g:each>
                 </tbody>

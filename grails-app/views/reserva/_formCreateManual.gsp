@@ -3,6 +3,15 @@
     <div class="panel-container show">
 
         <div class="panel-content">
+            <g:if test="${servicioList?.size() > 0}">
+                <div class="form-group">
+                    <label class="form-label" for="servicio">Selecciona el Servicio</label>
+                    <div class="input-group">
+                        <g:select name="servicio" id="servicio" class="form-control select2" style="width: 100%;" optionKey="id"
+                                  from="${servicioList}" noSelection="['':'- Seleccione Servicio -']" required="true"/>
+                    </div>
+                </div>
+            </g:if>
             <div class="form-group">
                 <label class="form-label" for="fechaReserva">Fecha de Reserva</label>
                 <div class="input-group has-length">

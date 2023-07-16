@@ -36,6 +36,7 @@ class ServicioController {
         try {
             User user = springSecurityService?.getCurrentUser()
             Empresa empresa = Empresa.findByUsuario(user)
+            servicio.habilitado =  params?.habilitado ? true : false
             servicio.empresa = empresa
             servicioService.save(servicio)
         } catch (ValidationException e) {
@@ -77,6 +78,7 @@ class ServicioController {
             User user = springSecurityService?.getCurrentUser()
             Empresa empresa = Empresa.findByUsuario(user)
             servicio.empresa = empresa
+            servicio.habilitado =  params?.habilitado ? true : false
             servicioService.save(servicio)
             servicioService.save(servicio)
         } catch (ValidationException e) {
