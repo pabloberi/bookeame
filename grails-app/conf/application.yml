@@ -89,6 +89,20 @@ grails:
                 scriptlet: html
                 taglib: none
                 staticparts: none
+    plugin:
+        springsecurity:
+            oauth2:
+                active: true
+                registration:
+                    roleNames: ['ROLE_USER']
+                providers:
+                    google:
+                        api_key: '913695137763-den74ink8k1a51kf42de5m875b7mopen.apps.googleusercontent.com'               #needed
+                        api_secret: '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'         #needed
+                        successUri: "/oauth2/google/success"    #optional
+                        failureUri: "/oauth2/google/failure"    #optional
+                        callback: "/oauth2/google/callback"     #optional
+                        scopes: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
 #management:
 #    endpoints:
 #        jmx:

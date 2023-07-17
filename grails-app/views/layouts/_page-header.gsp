@@ -191,7 +191,12 @@
         <div>
             <a href="#" data-toggle="dropdown" title="email" class="header-icon d-flex align-items-center justify-content-center ml-2" aria-expanded="false">
                 <g:if test="${user?.foto}">
-                    <asset:image src="/imagenes/users/${user?.id}/${user?.foto}" style="height: 50px; width: 50px;" alt="" class="profile-image rounded-circle"/>
+                    <g:if test="${user?.provider == 'google'}">
+                        <img src="${raw(user?.foto)}" style="height: 50px; width: 50px;" alt="" class="profile-image rounded-circle"/>
+                    </g:if>
+                    <g:else>
+                        <asset:image src="/imagenes/users/${user?.id}/${user?.foto}" style="height: 50px; width: 50px;" alt="" class="profile-image rounded-circle"/>
+                    </g:else>
                 </g:if>
                 <g:else>
                     <asset:image src="/imagenes/imagenNula.png" style="height: 50px; width: 50px;" alt="" class="profile-image rounded-circle"/>
@@ -202,7 +207,13 @@
                     <div class="d-flex flex-row align-items-center mt-1 mb-1 color-white">
                         <span class="mr-2">
                             <g:if test="${user?.foto}">
-                                <asset:image src="/imagenes/users/${user?.id}/${user?.foto}" style="height: 45px; width: 45px;" alt="" class="profile-image rounded-circle"/>
+                                <g:if test="${user?.provider == 'google'}">
+                                    <img src="${raw(user?.foto)}"  absolute="true"
+                                           style="height: 45px; width: 45px;" alt="" class="profile-image rounded-circle" />
+                                </g:if>
+                                <g:else>
+                                    <asset:image src="/imagenes/users/${user?.id}/${user?.foto}" style="height: 45px; width: 45px;" alt="" class="profile-image rounded-circle"/>
+                                </g:else>
                             </g:if>
                             <g:else>
                                 <asset:image src="/imagenes/imagenNula.png" style="height: 45px; width: 45px;" alt="" class="profile-image rounded-circle"/>
