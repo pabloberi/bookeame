@@ -28,6 +28,7 @@ class PrepagoUtilService {
                             "apiKey"         : flowEmpresa?.apiKey,
                             "commerceOrder"  : flowService.correlativoFlow(),
                             "email"          : user?.email ?: "pablo@bericul.com",
+                            "paymentMethod"  : 1,
                             "subject"        : "Pago de reserva ${reserva?.espacio?.nombre} ${formatoFechaUtilService?.formatFecha(reserva?.fechaReserva, 'dd-MM-yyyy')} ${reserva?.horaInicio}",
                             "timeout"        : 240,
                             "urlConfirmation": "${General.findByNombre('baseUrl').valor}/" + urlConfirm,
