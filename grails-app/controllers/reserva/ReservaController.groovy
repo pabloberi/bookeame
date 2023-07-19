@@ -975,7 +975,8 @@ class ReservaController {
             servicioReservaList = ServicioReserva.findAllByReserva(reserva)
             String templateUser = groovyPageRenderer.render(template:  "/correos/comprobante",
                     model: [reserva: reserva, servicioReservaList: servicioReservaList])
-            utilService.enviarCorreo("ap.pabloignacio@gmail.com", "contacto@bookeame.cl", "test", templateUser)
+            utilService.enviarCorreo(reserva?.usuario?.email, "contacto@bookeame.cl",
+                    "Comprobante de Pago", templateUser)
             reserva.envioComprobante = true
             reservaService.save(reserva)
             flash.message = 'Comprobante enviado con exito!'
