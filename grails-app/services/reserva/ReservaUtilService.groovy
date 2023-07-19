@@ -321,7 +321,7 @@ class ReservaUtilService {
             crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
             log.error("Ha ocurrido un error inesperado")
         }
-         if( crearReservaRs.getReservaId() ){
+         if( crearReservaRs.getReservaId() && params?.servicio?.toLong()){
              servicioUtilService.guardarServicioEnReserva(params?.servicio?.toLong(), crearReservaRs.getReservaId() )
          }
         return crearReservaRs
@@ -600,7 +600,23 @@ class ReservaUtilService {
         }
     }
 
-    def registrarPago(Long id, String nota, String comentario, String pago){
+    def registrarPago(Long id, String pago){
+        boolean exito = false
+        Reserva reserva = Reserva.findById(id)
+        if(reserva){
+            try{
+                if( pago != null && pago.length() > 0){
+                    reserva.valorFinal = pago?.toInteger()
+                    reservaService.save(reserva)
+                    exito = true
+                }
+            }catch(e){ exito = false }
+        }else{ exito = false }
+
+        return exito
+    }
+
+    def registrarEvaluacion(Long id, String nota, String comentario){
         boolean exito = true
         Reserva reserva = Reserva.findById(id)
         if(reserva){
@@ -609,7 +625,6 @@ class ReservaUtilService {
 
                 if( nota != null && nota.length() > 0){evaluacion.evaluacionToUser = EvaluacionToUser.findById( nota?.toLong() )}
                 if( comentario != null && comentario.length() > 0){evaluacion.comentarioToUser = comentario}
-                if( pago != null && pago.length() > 0){ reserva.valorFinal = pago?.toInteger() }
 
                 evaluacionService.save(evaluacion)
                 reserva.evaluacion = evaluacion

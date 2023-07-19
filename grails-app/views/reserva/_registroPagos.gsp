@@ -25,33 +25,21 @@
         </g:if>
     </div>
 
-    <div class="panel-container show">
-        <div class="form-group mt-5">
-            <h5>Tu opinión nos importa</h5>
-            <h6>Queremos saber como ha sido tu experiencia con el usuario ${reserva?.usuario} el día <g:formatDate format="dd-MM-yyyy" date="${reserva?.fechaReserva}"/> </h6>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label" for="notaUser">Califica al usuario</label>
-            <div class="input-group">
-                <g:select name="notaUser" id="notaUser" class="form-control select2" style="width: 100%;" optionKey="id"
-                          from="${EvaluacionToUser.list('sort': "nota" , order: 'asc')}" noSelection="['':'- Seleccione Nota -']"
-                value="${reserva?.evaluacion?.evaluacionToUser?.id}"/>
-            </div>
-        </div>
-        <div class="form-group row">
-            <label class="col-xl-12 form-label" for="comentarioUser">Comentario</label>
-            <div class="col-sm-12 col-md-12 col-lg-12 pr-1">
-                <g:field type="text" id="comentarioUser" name="comentarioUser" class="form-control" placeholder="Opcional"/>
-            </div>
-        </div>
-
-        <div class="col-md-12 ">
-            <button name="registroPago"
-                    id="registroPago" type="submit" class="btn btn-success btn-block btn-md mt-12" value="1" >
-                Actualizar
-            </button>
-        </div>
+    <div class="col-md-12 mt-4">
+        <button name="registroPago"
+                id="registroPago" type="submit" class="btn btn-success btn-block btn-md mt-12 mb-2" value="1" >
+            Actualizar
+        </button>
+        <g:if test="${ reserva?.valorFinal && reserva?.envioComprobante != true }">
+            <a href="${createLink(controller: 'reserva', action: 'enviarComprobante', id: reserva?.id)}"
+               onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">
+                <button name="enviarComprobante"
+                        id="enviarComprobante" type="button" class="btn btn-outline-primary btn-block btn-md mt-12" >
+                    <span class="fal fa-envelope mr-1"></span>
+                    Enviar comprobante al cliente
+                </button>
+            </a>
+        </g:if>
     </div>
 
 </g:form>

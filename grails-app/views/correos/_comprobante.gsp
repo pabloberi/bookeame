@@ -68,48 +68,61 @@
     <div class="header">
         <img src="https://bookeame.cl/img/bookeame-logos/bookeame-full-blanco.png" alt="Logo" />
         <h1 style="color: white;">Comprobante de Pago</h1>
+        <h4 style="color: white;"># ${reserva?.codigo}</h4>
     </div>
 
     <div class="additional-info">
-        <p><strong>Fecha de Reserva:</strong> 18 de julio de 2023</p>
-        <p><strong>Hora de Reserva:</strong> 15:00</p>
-        <p><strong>Nombre del Cliente:</strong> John Doe</p>
-        <p><strong>Lugar:</strong> Ciudad Ejemplo</p>
+        <p><strong>Fecha de Reserva:</strong> <g:formatDate type="date" style="FULL" date="${reserva?.fechaReserva}"/></p>
+        <p><strong>Hora de Reserva:</strong> ${reserva?.horaInicio}</p>
+        <p><strong>Nombre del Cliente:</strong> ${reserva?.usuario?.nombreCompleto ?: reserva?.usuario?.email}</p>
+        <p><strong>Lugar:</strong> ${reserva?.espacio?.nombre}</p>
     </div>
 
     <table class="invoice">
         <thead>
         <tr>
-            <th>Producto</th>
+            <th>Servicio</th>
             <th>Precio</th>
             <th>Cantidad</th>
             <th>Total</th>
         </tr>
         </thead>
         <tbody>
+        <g:if test="${servicioReservaList?.size() > 0}">
+            <g:each in="${servicioReservaList}" var="servicioReserva" status="i">
+                <tr>
+                    <td>${servicioReserva?.servicio?.nombre}</td>
+                    <td>$ ${reserva?.valorFinal } .-</td>
+                    <td>1</td>
+                    <td>$ ${reserva?.valorFinal } .-</td>
+                </tr>
+            </g:each>
+        </g:if>
+        <g:else>
+            <tr>
+                <td>${reserva?.espacio?.nombre}</td>
+                <td>$ ${reserva?.valorFinal } .-</td>
+                <td>1</td>
+                <td>$ ${reserva?.valorFinal } .-</td>
+            </tr>
+        </g:else>
         <tr>
-            <td>Producto 1</td>
-            <td>$10</td>
-            <td>2</td>
-            <td>$20</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
-            <td>Producto 2</td>
-            <td>$15</td>
-            <td>1</td>
-            <td>$15</td>
-        </tr>
-        <tr>
-            <td>Producto 3</td>
-            <td>$5</td>
-            <td>3</td>
-            <td>$15</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td></td>
             <td></td>
             <td>Total</td>
-            <td>$15</td>
+            <td>$ ${reserva?.valorFinal } .-</td>
         </tr>
         </tbody>
     </table>

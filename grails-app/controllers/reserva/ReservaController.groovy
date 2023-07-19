@@ -470,6 +470,7 @@ class ReservaController {
                         res.horaInicio = reserva?.horaInicio
                         res.horaTermino = reserva?.horaTermino
                         res.valor = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) ?: reserva?.valor
+                        res.valorFinal = res.valor
                         res.valorComisionFlow = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) - reserva?.valor
                         res.espacio = reserva?.espacio
                         res.tipoReserva = reserva?.tipoReserva
@@ -926,8 +927,6 @@ class ReservaController {
             }
             boolean exito = reservaUtilService.registrarPago(
                     id,
-                    params?.notaUser,
-                    params?.comentarioUser,
                     params?.valorFinal
             )
             if( exito ){
@@ -940,5 +939,49 @@ class ReservaController {
             flash.error = "No hemos podido guardar la información. Por favor intenta más tarde."
             redirect(controller: 'reserva', action: 'show', id: id)
         }
+    }
+
+    @Secured(['ROLE_ADMIN','ROLE_SUPERUSER'])
+    def registrarEvaluacion(Long id){
+        try{
+            if( !validadorPermisosUtilService?.validarRelacionReservaUser(id)){
+                render view: '/notFound'
+            }
+            boolean exito = reservaUtilService.registrarEvaluacion(
+                    id,
+                    params?.notaUser,
+                    params?.comentarioUser,
+            )
+            if( exito ){
+                flash.message = "Datos guardados con exito!"
+            }else{
+                flash.error = "No hemos podido guardar la información. Por favor intenta más tarde."
+            }
+            redirect(controller: 'reserva', action: 'show', id: id)
+        }catch(e){
+            flash.error = "No hemos podido guardar la información. Por favor intenta más tarde."
+            redirect(controller: 'reserva', action: 'show', id: id)
+        }
+    }
+
+    @Secured(['ROLE_ADMIN','ROLE_SUPERUSER'])
+    def enviarComprobante(Long id){
+        try{
+            if( !validadorPermisosUtilService?.validarRelacionReservaUser(id)){
+                render view: '/notFound'
+            }
+            Reserva reserva = Reserva.get(id)
+            List<ServicioReserva> servicioReservaList = new ArrayList<>()
+            servicioReservaList = ServicioReserva.findAllByReserva(reserva)
+            String templateUser = groovyPageRenderer.render(template:  "/correos/comprobante",
+                    model: [reserva: reserva, servicioReservaList: servicioReservaList])
+            utilService.enviarCorreo("ap.pabloignacio@gmail.com", "contacto@bookeame.cl", "test", templateUser)
+            reserva.envioComprobante = true
+            reservaService.save(reserva)
+            flash.message = 'Comprobante enviado con exito!'
+        }catch(e){
+            flash.error = 'Ups! Ha ocurrido un error. Por favor intenta más tarde.'
+        }
+        redirect(controller: 'reserva', action: 'show', id: id)
     }
 }

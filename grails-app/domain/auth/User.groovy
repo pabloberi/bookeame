@@ -95,7 +95,7 @@ class User implements Serializable {
     }
 
     def getNombreCompleto(){
-        return nombre + " " + apellidoPaterno  + " " + apellidoMaterno
+        return nombre ?: "" + " " + apellidoPaterno ?: ""  + " " + apellidoMaterno ?: ""
     }
 
 }

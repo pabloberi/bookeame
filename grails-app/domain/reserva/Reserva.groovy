@@ -31,6 +31,7 @@ class Reserva {
     Date terminoExacto
 
     Date dateCreated
+    Boolean envioComprobante
 
     static hasMany = [servicioReserva: ServicioReserva]
 
@@ -53,7 +54,7 @@ class Reserva {
         valorFinal nullable: true
         codigo nullable: true
         valorComisionFlow nullable: true
-//        reservaPlinificada nullable: true
+        envioComprobante nullable: true
     }
 
     def utilService
