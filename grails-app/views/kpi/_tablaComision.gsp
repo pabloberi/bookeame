@@ -39,9 +39,9 @@
                 <g:each in="${reservaList}" status="i" var="reserva" >
                     <tr>
                         <td><g:formatDate format="dd-MM-yyyy" date="${reserva?.fechaReserva}"/></td>
-                        <td>$ ${g.formatNumber(format: "###,##0", number: reserva?.valorFinal - reserva?.valorComisionFlow)}</td>
+                        <td>$ ${g.formatNumber(format: "###,##0", number: reserva?.valor - reserva?.valorComisionFlow)}</td>
                         <td>$ ${g.formatNumber(format: "###,##0", number: reserva?.valorComisionFlow)}</td>
-                        <td>$ ${g.formatNumber(format: "###,##0", number: reserva?.valorFinal)}</td>
+                        <td>$ ${g.formatNumber(format: "###,##0", number: reserva?.valor)}</td>
                     </tr>
                 </g:each>
                 </tbody>

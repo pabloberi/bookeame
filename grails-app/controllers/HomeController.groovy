@@ -208,8 +208,8 @@ class HomeController {
                 }
 
                 for( reserva in reservaList){
-                    if(reserva?.valorFinal){
-                        valor = valor + reserva?.valorFinal
+                    if(reserva?.valor){
+                        valor = valor + reserva?.valor
                     }
                 }
 
@@ -341,7 +341,7 @@ class HomeController {
                     }
                 }
                 recaudacionComision = reservaList?.sum { it?.valorComisionFlow ?: 0 }
-                recaudacionNeta = reservaList?.sum { it?.valorFinal ?: 0 } - recaudacionComision
+                recaudacionNeta = reservaList?.sum { it?.valor ?: 0 } - recaudacionComision
             }
         }catch(e){}
         render template: '/kpi/tablaComision', model:[
@@ -373,7 +373,7 @@ class HomeController {
 
                     }
                 }
-                recaudacion = reservaList?.sum { it?.valorFinal ?: 0 }
+                recaudacion = reservaList?.sum { it?.valor ?: 0 }
             }
         }catch(e){}
         render template: '/kpi/tablaRecaudacion', model:[reservaList: reservaList, recaudacion: recaudacion]
@@ -407,15 +407,6 @@ class HomeController {
 
         redirect( controller: 'home', action: 'contactoSoporte')
     }
-
-    @Secured(['permitAll'])
-    def comprobante(){
-        String template = groovyPageRenderer.render(template:  "/correos/comprobante")
-        utilService.enviarCorreo("ap.pabloignacio@gmail.com", "noresponder@bookeame.cl", "SOPORTE TÉCNICO", template )
-        return 'ok'
-    }
-
-    def testqr(){}
 
     @Secured(['ROLE_USER'])
     def cargarDireccion(boolean valor){

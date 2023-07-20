@@ -42,7 +42,7 @@
                     <g:each in="${reservaList}" status="i" var="reserva">
                         <tr>
                             <td><g:formatDate format="dd-MM-yyyy" date="${reserva?.fechaReserva}"/> ${reserva?.horaInicio} - ${reserva?.horaTermino}</td>
-                            <td><g:formatNumber  class="form-control"  number="${reserva?.valorFinal ?: 0}"  format="\$ ###,###,###"  /></td>
+                            <td><g:formatNumber  class="form-control"  number="${reserva?.valor ?: 0}"  format="\$ ###,###,###"  /></td>
                             <td>${reserva?.espacio}</td>
                             <td>${reserva?.estadoReserva}</td>
                             <td>${reserva?.tipoReserva}</td>

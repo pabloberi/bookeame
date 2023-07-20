@@ -606,7 +606,7 @@ class ReservaUtilService {
         if(reserva){
             try{
                 if( pago != null && pago.length() > 0){
-                    reserva.valorFinal = pago?.toInteger()
+                    reserva.valor = pago?.toInteger()
                     reservaService.save(reserva)
                     exito = true
                 }
