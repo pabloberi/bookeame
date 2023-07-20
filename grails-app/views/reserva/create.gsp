@@ -6,8 +6,10 @@
         <g:set var="entityName" value="${message(code: 'reserva.label', default: 'Reserva')}" />
         <title><g:message code="default.show.label" args="[entityName]" /></title>
     </head>
+
     <body>
-        <div id="show-reserva" class="content scaffold-show" role="main">
+    <asset:stylesheet src="/formplugins/select2/select2.bundle.css"/>
+    <div id="show-reserva" class="content scaffold-show" role="main">
             <div id="panel-7" class="panel">
                 <div class="panel-hdr">
                     <h2>
@@ -27,8 +29,12 @@
                 </sec:ifAnyGranted>
             </div>
         </div>
-        <script>
-            <g:if test="${flash.message}">
+    <asset:javascript src="/formplugins/select2/select2.bundle.js"/>
+
+    <script>
+        $('.select2').select2();
+
+        <g:if test="${flash.message}">
             $(document).ready( function () {
                 toastr.success("${flash.message}");
             });

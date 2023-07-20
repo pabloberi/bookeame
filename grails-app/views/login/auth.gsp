@@ -81,7 +81,6 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 %{--</div>--}%
             %{--</div>--}%
                 <button type="submit" class="btn btn-default float-right">Entrar</button>
-
 %{--                <div class="g-signin2" data-onsuccess="onSignIn" id="botonGoogle"></div>--}%
 %{--                <label class="form-label" for="botonGoogle">Sólo para usuarios</label>--}%
 
@@ -95,8 +94,19 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
         <g:if test="${ !params?.usr }">
             <a href="${createLink(controller: 'user', action: 'registro')}"><strong>Registrate</strong></a>
         </g:if>
+
+        <oauth2:connect provider="google" id="google-connect-link">
+            <button type="button" class="btn btn-lg btn-outline-secondary mt-6">
+                <asset:image src="/google.png" style="width: 35px;" class="mr-1" />
+                Iniciar con Google
+            </button>
+        </oauth2:connect>
     </div>
+
+
+
 </div>
+
 %{--<div class="login-footer p-2">--}%
     %{--<div class="row">--}%
         %{--<div class="col col-sm-12 text-center">--}%

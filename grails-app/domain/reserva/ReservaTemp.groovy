@@ -16,6 +16,8 @@ class ReservaTemp {
     EstadoReserva estadoReserva
     Evaluacion evaluacion
     String token
+    Date inicioExacto
+    Date terminoExacto
 
     Date dateCreated
 
@@ -30,8 +32,23 @@ class ReservaTemp {
         valor nullable: true
         evaluacion nullable: true
         token nullable: true
+        inicioExacto nullable: true
+        terminoExacto nullable: true
     }
 
+    def beforeInsert(){
+        try{
+            Calendar c = Calendar.getInstance()
+            c.setTime(this?.fechaReserva)
+            c.set(Calendar.SECOND, 0)
+            c.set(Calendar.MINUTE, this?.horaInicio?.substring(3,5)?.toInteger())
+            c.set(Calendar.HOUR_OF_DAY, this?.horaInicio?.substring(0,2)?.toInteger())
+            this.inicioExacto = c.getTime()
+            c.set(Calendar.MINUTE, this?.horaTermino?.substring(3,5)?.toInteger())
+            c.set(Calendar.HOUR_OF_DAY, this?.horaTermino?.substring(0,2)?.toInteger())
+            this.terminoExacto = c.getTime()
+        }catch(e){}
+    }
 }
 
 

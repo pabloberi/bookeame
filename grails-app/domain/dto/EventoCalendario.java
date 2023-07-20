@@ -15,6 +15,7 @@ public class EventoCalendario {
     private String	valor;
     private String	urlDelete;
     private String	urlFicha;
+    private String  urlSave;
 
     private Long	modulo;
 
@@ -102,4 +103,6 @@ public class EventoCalendario {
     public void setModulo(Long modulo) {
         this.modulo = modulo;
     }
+    public String getUrlSave(){ return urlSave;}
+    public void setUrlSave(String urlSave){this.urlSave = urlSave;}
 }

@@ -26,7 +26,12 @@
 %{--            <asset:image src="demo/avatars/avatar-b.png" class="profile-image rounded-circle" alt="user"/>--}%
 %{--            <asset:image src="/../../../src/main/webapp/assets/img/fotosPerfilUser/${user?.id}/${user?.foto}" class="profile-image rounded-circle" alt="user"/>--}%
             <g:if test="${user?.foto}">
-                <asset:image src="/imagenes/users/${user?.id}/${user?.foto}" class="profile-image rounded-circle" style="width: 60px; height: 60px" alt="user"/>
+                <g:if test="${user?.provider == 'google'}">
+                    <img src="${raw(user?.foto)}" class="profile-image rounded-circle" style="width: 60px; height: 60px" alt="user"/>
+                </g:if>
+                <g:else>
+                    <asset:image src="/imagenes/users/${user?.id}/${user?.foto}" class="profile-image rounded-circle" style="width: 60px; height: 60px" alt="user"/>
+                </g:else>
             </g:if>
             <g:else>
                 <asset:image src="/imagenes/imagenNula.png" class="profile-image rounded-circle" style="width: 60px; height: 60px" alt="user"/>
@@ -35,7 +40,7 @@
             <div class="info-card-text">
                 <a href="#" class="d-flex align-items-center text-white">
                     <span class="text-truncate text-truncate-sm d-inline-block">
-                        ${user?.nombre}
+                        ${user?.nombre ?: user?.email }
 %{--                        ${sec.loggedInUserInfo(field: 'id')}--}%
                     </span>
                 </a>

@@ -532,4 +532,5 @@ class UserController {
         redirect(controller: 'user', action: 'index')
     }
 
+
 }

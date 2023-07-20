@@ -1,7 +1,5 @@
 package auth
 
-import gestion.General
-import grails.util.Holders
 import groovy.transform.EqualsAndHashCode
 import groovy.transform.ToString
 import grails.compiler.GrailsCompileStatic
@@ -33,7 +31,6 @@ class User implements Serializable {
 //    TipoCuenta tipoCuenta
     float indiceConfianza = 0
     String foto
-    Integer distance = 15
 
     Integer indiceAcumulado = 0
     Integer indiceContador = 0
@@ -46,6 +43,9 @@ class User implements Serializable {
     boolean accountLocked
     boolean passwordExpired
     boolean invitado = false
+    String provider
+
+    static hasMany = [oAuthIDs: OAuthID]
 
     Set<Role> getAuthorities() {
         (UserRole.findAllByUser(this) as List<UserRole>)*.role as Set<Role>
@@ -74,6 +74,8 @@ class User implements Serializable {
         dvRepresentante nullable: true
         invitado nullable: true
         tokenPassword nullable: true
+        oAuthIDs nullable: true
+        provider nullable: true
     }
 
     static mapping = {
@@ -93,7 +95,7 @@ class User implements Serializable {
     }
 
     def getNombreCompleto(){
-        return nombre + " " + apellidoPaterno  + " " + apellidoMaterno
+        return nombre ?: "" + " " + apellidoPaterno ?: ""  + " " + apellidoMaterno ?: ""
     }
 
 }

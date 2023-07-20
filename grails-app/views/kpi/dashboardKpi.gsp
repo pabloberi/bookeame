@@ -13,9 +13,6 @@
                 <g:render template="/kpi/ingresoMensual"/>
             </div>
             <div class="row">
-                <g:render template="/kpi/topEspacioUser" />
-            </div>
-            <div class="row">
                 <g:render template="/kpi/flujoPersonas" />
             </div>
             <div class="row">

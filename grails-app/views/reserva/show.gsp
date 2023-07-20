@@ -34,15 +34,23 @@
                 <div class="border px-3 pt-3 pb-0 rounded">
                     <ul class="nav nav-pills" role="tablist">
                         <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#ficha"><i class="fal fa-list mr-1"></i>Ficha</a></li>
-                        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#registro_pago"><i class="fal fa-dollar-sign mr-1"></i>Registro de Pagos</a></li>
+                        <sec:ifAnyGranted roles="ROLE_ADMIN">
+                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#registro_pago"><i class="fal fa-dollar-sign mr-1"></i>Registro de Pagos</a></li>
+                            <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#evaluacion"><i class="fal fa-star mr-1"></i>Evaluación Cliente</a></li>
+                        </sec:ifAnyGranted>
                     </ul>
                     <div class="tab-content py-3 mt-4">
                         <div class="tab-pane fade show active" id="ficha" role="tabpanel">
                             <g:render template="fichaReserva"/>
                         </div>
-                        <div class="tab-pane fade" id="registro_pago" role="tabpanel">
-                            <g:render template="registroPagos"/>
-                        </div>
+                        <sec:ifAnyGranted roles="ROLE_ADMIN">
+                            <div class="tab-pane fade" id="registro_pago" role="tabpanel">
+                                <g:render template="registroPagos"/>
+                            </div>
+                            <div class="tab-pane fade" id="evaluacion" role="tabpanel">
+                                <g:render template="evaluacionAlCliente"/>
+                            </div>
+                        </sec:ifAnyGranted>
                     </div>
                 </div>
             </div>

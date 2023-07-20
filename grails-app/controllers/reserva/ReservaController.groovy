@@ -18,6 +18,9 @@ import evaluacion.EvaluacionService
 import evaluacion.EvaluacionToEspacio
 import gestion.NotificationService
 import grails.plugin.springsecurity.annotation.Secured
+import servicios.Servicio
+import servicios.ServicioReserva
+import servicios.ServicioUtilService
 
 import java.text.SimpleDateFormat
 
@@ -37,6 +40,7 @@ class ReservaController {
     ReservaUtilService reservaUtilService
     PrepagoUtilService  prepagoUtilService
     DiaService diaService
+    ServicioUtilService servicioUtilService
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy")
     def springSecurityService
     def tokenStorageService
@@ -53,13 +57,16 @@ class ReservaController {
         if(validadorPermisosUtilService?.validarRelacionReservaUser(id)){
             Reserva reserva = reservaService.get(id)
             try{
+                List<ServicioReserva> servicioReservaList = servicioUtilService.getServiciosPorReserva(reserva?.id)
                 if(validadorPermisosUtilService.esRoleAdmin()){
                     ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)?.fono
                     respond reserva, model: [
                             esReservaVigente: validaPermisosReservaUtilService?.esReservaVigente(reserva),
                             esReservaPosPagoPendiente: validaPermisosReservaUtilService?.esReservaPosPagoPendiente(reserva),
                             esReservaHistorica: validaPermisosReservaUtilService?.esReservaHistorica(reserva),
-                            configuracion: ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)
+                            configuracion: ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa),
+                            servicioReservaList: servicioReservaList,
+                            valor: reservaUtilService.getValorReserva(reserva?.id)
                     ]
                 }
                 if(validadorPermisosUtilService.esRoleUser()){
@@ -68,7 +75,9 @@ class ReservaController {
                             hoy: new Date(),
                             configuracion: configuracion,
                             puedeCancelar: validadorPermisosUtilService.userPuedeCancelarReserva(reserva,configuracion),
-                            puedeReagendar: validadorPermisosUtilService.userPuedeReagendarReserva(reserva, configuracion)
+                            puedeReagendar: validadorPermisosUtilService.userPuedeReagendarReserva(reserva, configuracion),
+                            servicioReservaList: servicioReservaList,
+                            valor: reservaUtilService.getValorReserva(reserva?.id)
                     ]
                 }
             }catch(e){
@@ -92,12 +101,15 @@ class ReservaController {
     }
 
     def create(String fecha, String moduloId, Long id) {
+        List<Servicio> servicioList = []
+
         try{
             if( reservaUtilService?.puedeCrearReserva(moduloId?.toLong(), id, fecha) ){
                 Espacio espacio = Espacio.get( id )
                 Modulo modulo = Modulo.get( moduloId?.toLong() )
                 ConfiguracionEmpresa configuracion = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
                 Date fechaCompleta = formatoFechaUtilService?.stringToDateConverter( fecha, "dd-MM-yyyy" )
+                servicioList = servicioUtilService.getServiciosEmpresa(espacio?.empresaId)
                 respond espacio, model: [   modulo:         modulo,
                                             fecha:          fechaCompleta,
                                             fechaReserva:   fecha,
@@ -106,7 +118,8 @@ class ReservaController {
                                             token:          reservaUtilService?.encriptarDatosReserva(modulo,espacio,fecha),
                                             reserva:        new Reserva(params),
                                             comision:       prepagoUtilService?.costoTransaccion(modulo?.valor,
-                                                    FlowEmpresa.findByEmpresa(espacio?.empresa).comision?.valor ?: 3.19) ?:0
+                                                    FlowEmpresa.findByEmpresa(espacio?.empresa).comision?.valor ?: 3.19) ?:0,
+                                            servicioList: servicioList
                 ]
             }else{
                 flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
@@ -457,6 +470,7 @@ class ReservaController {
                         res.horaInicio = reserva?.horaInicio
                         res.horaTermino = reserva?.horaTermino
                         res.valor = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) ?: reserva?.valor
+                        res.valorFinal = res.valor
                         res.valorComisionFlow = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) - reserva?.valor
                         res.espacio = reserva?.espacio
                         res.tipoReserva = reserva?.tipoReserva
@@ -913,8 +927,6 @@ class ReservaController {
             }
             boolean exito = reservaUtilService.registrarPago(
                     id,
-                    params?.notaUser,
-                    params?.comentarioUser,
                     params?.valorFinal
             )
             if( exito ){
@@ -927,5 +939,50 @@ class ReservaController {
             flash.error = "No hemos podido guardar la información. Por favor intenta más tarde."
             redirect(controller: 'reserva', action: 'show', id: id)
         }
+    }
+
+    @Secured(['ROLE_ADMIN','ROLE_SUPERUSER'])
+    def registrarEvaluacion(Long id){
+        try{
+            if( !validadorPermisosUtilService?.validarRelacionReservaUser(id)){
+                render view: '/notFound'
+            }
+            boolean exito = reservaUtilService.registrarEvaluacion(
+                    id,
+                    params?.notaUser,
+                    params?.comentarioUser,
+            )
+            if( exito ){
+                flash.message = "Datos guardados con exito!"
+            }else{
+                flash.error = "No hemos podido guardar la información. Por favor intenta más tarde."
+            }
+            redirect(controller: 'reserva', action: 'show', id: id)
+        }catch(e){
+            flash.error = "No hemos podido guardar la información. Por favor intenta más tarde."
+            redirect(controller: 'reserva', action: 'show', id: id)
+        }
+    }
+
+    @Secured(['ROLE_ADMIN','ROLE_SUPERUSER'])
+    def enviarComprobante(Long id){
+        try{
+            if( !validadorPermisosUtilService?.validarRelacionReservaUser(id)){
+                render view: '/notFound'
+            }
+            Reserva reserva = Reserva.get(id)
+            List<ServicioReserva> servicioReservaList = new ArrayList<>()
+            servicioReservaList = ServicioReserva.findAllByReserva(reserva)
+            String templateUser = groovyPageRenderer.render(template:  "/correos/comprobante",
+                    model: [reserva: reserva, servicioReservaList: servicioReservaList])
+            utilService.enviarCorreo(reserva?.usuario?.email, "contacto@bookeame.cl",
+                    "Comprobante de Pago", templateUser)
+            reserva.envioComprobante = true
+            reservaService.save(reserva)
+            flash.message = 'Comprobante enviado con exito!'
+        }catch(e){
+            flash.error = 'Ups! Ha ocurrido un error. Por favor intenta más tarde.'
+        }
+        redirect(controller: 'reserva', action: 'show', id: id)
     }
 }

@@ -58,25 +58,25 @@
         </ul>
         </li>
 
-%{--        <li>--}%
-%{--            <a href="#" title="Destácate" data-filter-tags="font icons">--}%
-%{--                <i class="fal fa-tags"></i>--}%
-%{--                <span class="nav-link-text" data-i18n="nav.font_icons">Destácate</span>--}%
-%{--                --}%%{--<span class="dl-ref bg-primary-500 hidden-nav-function-minify hidden-nav-function-top">2,500+</span>--}%
-%{--            </a>--}%
-%{--            <ul>--}%
-%{--                <li>--}%
-%{--                    <a href="${createLink(controller: 'promoEntidad', action: 'create')}" title="Crear Anuncio" data-filter-tags="font icons fontawesome">--}%
-%{--                        <span class="nav-link-text" data-i18n="nav.font_icons_fontawesome">Crear</span>--}%
-%{--                    </a>--}%
-%{--                </li>--}%
-%{--                <li>--}%
-%{--                    <a href="${createLink(controller: 'promoEntidad', action: 'index')}" title="Listar Anuncios" data-filter-tags="font icons nextgen icons">--}%
-%{--                        <span class="nav-link-text" data-i18n="nav.font_icons_nextgen_icons">Listar</span>--}%
-%{--                    </a>--}%
-%{--                </li>--}%
-%{--            </ul>--}%
-%{--        </li>--}%
+        <li>
+            <a href="#" title="Servicios" data-filter-tags="font icons">
+                <i class="fal fa-th"></i>
+                <span class="nav-link-text" data-i18n="nav.font_icons">Servicios</span>
+                %{--<span class="dl-ref bg-primary-500 hidden-nav-function-minify hidden-nav-function-top">2,500+</span>--}%
+            </a>
+            <ul>
+                <li>
+                    <a href="${createLink(controller: 'servicio', action: 'create')}" title="Crear Espacio" data-filter-tags="font icons fontawesome">
+                        <span class="nav-link-text" data-i18n="nav.font_icons_fontawesome">Crear</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="${createLink(controller: 'servicio', action: 'index')}" title="Listar Espacios" data-filter-tags="font icons nextgen icons">
+                        <span class="nav-link-text" data-i18n="nav.font_icons_nextgen_icons">Listar</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
 
         <li>
             <a href="${createLink(controller: 'home', action: 'dashboardKpi')}" title="KPI" data-filter-tags="principal">

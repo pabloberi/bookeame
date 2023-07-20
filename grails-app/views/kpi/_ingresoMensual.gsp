@@ -12,9 +12,9 @@
         </div>
         <div class="panel-container show">
             <div class="panel-content">
-                <div class="panel-tag">
-                   Sólo se consideran las reservas en las cuales se evaluó al usuario.
-                </div>
+%{--                <div class="panel-tag">--}%
+%{--                   Sólo se consideran las reservas en las cuales se evaluó al usuario.--}%
+%{--                </div>--}%
                 <div id="js-checkbox-toggles" class="d-flex mb-3">
                     <div class="custom-control custom-switch mr-2">
                         <input type="checkbox" class="custom-control-input" name="gra-0" id="gra-0" checked="">

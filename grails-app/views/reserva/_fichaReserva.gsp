@@ -10,13 +10,21 @@
                     <td valign="top" class="name"><g:message code="reserva.fechaReserva.label" default="Fecha de Reserva" /></td>
                     <td valign="top" class="value"><g:formatDate type="date" style="FULL" date="${reserva?.fechaReserva}"/></td>
                 </tr>
+                <g:if test="${servicioReservaList?.size() > 0}">
+                    <g:each in="${servicioReservaList}" var="servicioReserva" >
+                        <tr class="prop">
+                            <td valign="top" class="name"><g:message code="reserva.fechaReserva.label" default="Servicio" /></td>
+                            <td valign="top" class="value">${servicioReserva?.servicio?.nombre}</td>
+                        </tr>
+                    </g:each>
+                </g:if>
                 <tr class="prop">
                     <td valign="top" class="name"><g:message code="reserva.fechaReserva.label" default="Horario" /></td>
                     <td valign="top" class="value">${reserva?.horaInicio} - ${reserva?.horaTermino}</td>
                 </tr>
                 <tr class="prop">
                     <td valign="top" class="name"><g:message code="reserva.valor.label" default="Valor" /></td>
-                    <td valign="top" class="value">$ ${fieldValue(bean: reserva, field: "valor")} .-</td>
+                    <td valign="top" class="value">$ ${valor} .-</td>
                 </tr>
                 <tr class="prop">
                     <td valign="top" class="name"><g:message code="reserva.espacio.label" default="Espacio" /></td>

@@ -104,36 +104,37 @@
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="nombre">Nombre</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"></span>
-                            </div>
-                            <g:field type="text" id="nombre" name="nombre" class="form-control" disabled="" value="${user?.nombre + " " + user?.apellidoPaterno + " " + user?.apellidoMaterno}"/>
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="form-label" for="fechaNac">Fecha de Nacimiento</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"></span>
+                        <div class="form-group">
+                            <label class="form-label" for="nombre">Nombre</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"></span>
+                                </div>
+                                <g:field type="text" id="nombre" name="nombre" class="form-control" disabled="" value="${user?.nombre + " " + user?.apellidoPaterno + " " + user?.apellidoMaterno}"/>
                             </div>
-                            <g:field type="text" id="fechaNac" name="fechaNac" class="form-control" disabled="" value="${g.formatDate(format:"dd-MM-yyyy", date: user?.fechaNac)}"/>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label" for="rutUser">RUT</label>
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text"></span>
+                    <g:if test="${user?.provider != 'google'}">
+                        <div class="form-group">
+                            <label class="form-label" for="fechaNac">Fecha de Nacimiento</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"></span>
+                                </div>
+                                <g:field type="text" id="fechaNac" name="fechaNac" class="form-control" disabled="" value="${g.formatDate(format:"dd-MM-yyyy", date: user?.fechaNac)}"/>
                             </div>
-                            <g:field type="text" id="rutUser" name="rutUser" class="form-control" disabled="" value="${user?.rut + "-" + user?.dv}"/>
                         </div>
-                    </div>
 
+                        <div class="form-group">
+                            <label class="form-label" for="rutUser">RUT</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"></span>
+                                </div>
+                                <g:field type="text" id="rutUser" name="rutUser" class="form-control" disabled="" value="${user?.rut + "-" + user?.dv}"/>
+                            </div>
+                        </div>
+                    </g:if>
                     <div class="form-group">
                         <label class="form-label" for="email">Email</label>
                         <div class="input-group">
@@ -144,27 +145,29 @@
                         </div>
                     </div>
 
-                    <g:form method="POST" controller="user" action="subirImagenPerfil" params="[controlador: 'user', metodo: 'show', id: user?.id]" enctype="multipart/form-data" >
-                         <div class="form-group row">
-                            <div class="col-sm-12 col-md-8 col-lg-8">
-                                <label class="form-label" for="fotoPerfil">Foto de Perfil</label>
-                                <div class="input-group">
-                                    <div class="input-group-prepend">
-                                        <span class="input-group-text"></span>
+                    <g:if test="${user?.provider != 'google'}">
+                        <g:form method="POST" controller="user" action="subirImagenPerfil" params="[controlador: 'user', metodo: 'show', id: user?.id]" enctype="multipart/form-data" >
+                             <div class="form-group row">
+                                <div class="col-sm-12 col-md-8 col-lg-8">
+                                    <label class="form-label" for="fotoPerfil">Foto de Perfil</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"></span>
+                                        </div>
+                                        <g:field type="file" class="form-control filename" name="fotoPerfil" id="fotoPerfil" accept=".jpg, .jpeg, .png" onblur="checkSize()"/>
+
                                     </div>
-                                    <g:field type="file" class="form-control filename" name="fotoPerfil" id="fotoPerfil" accept=".jpg, .jpeg, .png" onblur="checkSize()"/>
+                                </div>
 
+
+                                <div class="col-sm-12 col-md-2 col-lg-2" style="margin-top: 2em;" >
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="submit" class="btn btn-info btn-sm" title="Guardar">Subir</button>
+                                    </div>
                                 </div>
                             </div>
-
-
-                            <div class="col-sm-12 col-md-2 col-lg-2" style="margin-top: 2em;" >
-                                <div class="btn-group btn-group-sm">
-                                    <button type="submit" class="btn btn-info btn-sm" title="Guardar">Subir</button>
-                                </div>
-                            </div>
-                        </div>
-                    </g:form>
+                        </g:form>
+                    </g:if>
 
                     <g:form method="POST" controller="user" action="editarCampo">
                     <div class="form-group row">
@@ -186,22 +189,6 @@
                         </div>
                     </div>
                     </g:form>
-
-%{--                    <g:form method="POST" controller="user" action="editDistance">--}%
-%{--                    <div class="form-group row">--}%
-%{--                        <div class="col-sm-12 col-md-8 col-lg-8">--}%
-%{--                            <label class="col-md-6 form-label" for="distance" id="valorDistance" style="float: right">${user?.distance} km</label>--}%
-%{--                            <g:field type="range" id="distance" name="distance" class="custom-range form-control" min="0" max="50" step="1" required="" value="${user?.distance}"  onchange="cambiarValorDistance(this.value)"/>--}%
-%{--                        </div>--}%
-
-%{--                        <div class="col-sm-12 col-md-4 col-lg-4" style="margin-top: 1.5em">--}%
-%{--                            <div class="btn-group btn-group-sm">--}%
-%{--                                <button type="submit" class="btn btn-info btn-sm" ><i class="fal fa-check" aria-hidden="true"></i></button>--}%
-%{--                                <a class="btn btn-secondary btn-sm" href="${createLink(controller: 'user', action: 'show', id: user?.id)}"><i class="fal fa-times" aria-hidden="true"></i></a>--}%
-%{--                            </div>--}%
-%{--                        </div>--}%
-%{--                    </div>--}%
-%{--                    </g:form>--}%
 
                 </sec:ifAnyGranted>
             </div>
@@ -354,28 +341,6 @@
             '</div>' +
             '</g:form>');
     }
-    function editDistance() {
-        $('#distance').html(''+
-            '<g:form method="POST" controller="user" action="editDistance">' +
-            '<div class="form-group row">'+
-            '<div class="col-sm-12 col-md-4 col-lg-4">'+
-                '<label class="col-md-6 form-label" for="distance" id="valorDistance" style="float: right">${user?.distance} km</label>'+
-            '<g:field type="range" id="distance" name="distance" class="custom-range form-control" min="0" max="50" step="1" required="" value="${user?.distance}"  onchange="cambiarValorDistance(this.value)"/>' +
-            '</div>' +
-            '<br><br>' +
-            '<div class="col-sm-12 col-md-2 col-lg-2">'+
-            '<div class="btn-group btn-group-sm">'+
-            '<button type="submit" class="btn btn-info btn-sm" ><i class="fal fa-check" aria-hidden="true"></i></button>'+
-            '<a class="btn btn-secondary btn-sm" href="${createLink(controller: 'user', action: 'show', id: user?.id)}"><i class="fal fa-times" aria-hidden="true"></i></a>' +
-            '</div>' +
-            '</div>' +
-            '</div>' +
-            '</g:form>');
-    }
-    function cambiarValorDistance(valor) {
-        document.querySelector('#valorDistance').innerText = valor + ' km';
-    }
-
 
     <g:if test="${flash.message}">
         $(document).ready( function () {
