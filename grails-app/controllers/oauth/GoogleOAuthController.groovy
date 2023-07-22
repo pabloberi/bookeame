@@ -3,6 +3,7 @@ package oauth
 
 import auth.UserUtilService
 import com.sun.istack.Nullable
+import gestion.General
 import grails.plugin.springsecurity.SpringSecurityService
 import grails.plugin.springsecurity.SpringSecurityUtils
 import grails.plugin.springsecurity.annotation.Secured
@@ -65,10 +66,10 @@ class GoogleOAuthController {
 
     protected Map getDefaultTargetUrl() {
         def config = SpringSecurityUtils.securityConfig
-        def savedRequest = SpringSecurityUtils.getSavedRequest(session)
+        General general = General.findByNombre("baseUrl") + "/"
         def defaultUrlOnNull = '/'
-        if (savedRequest && !config.successHandler.alwaysUseDefault) {
-            return [url: (savedRequest.redirectUrl ?: defaultUrlOnNull)]
+        if (general?.valor && !config.successHandler.alwaysUseDefault) {
+            return [url: (general?.valor?: defaultUrlOnNull)]
         }
         return [uri: (config.successHandler.defaultTargetUrl ?: defaultUrlOnNull)]
     }

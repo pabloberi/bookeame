@@ -101,6 +101,7 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 Iniciar con Google
             </button>
         </oauth2:connect>
+        <p style="color: black;">Exclusivo clientes</p>
     </div>
 
 
