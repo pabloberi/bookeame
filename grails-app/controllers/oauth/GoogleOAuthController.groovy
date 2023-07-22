@@ -1,6 +1,6 @@
-package OAuth
+package oauth
 
-import auth.User
+
 import auth.UserUtilService
 import com.sun.istack.Nullable
 import grails.plugin.springsecurity.SpringSecurityService
@@ -12,7 +12,6 @@ import grails.plugin.springsecurity.oauth2.token.OAuth2SpringToken
 import grails.plugin.springsecurity.userdetails.GrailsUser
 import groovy.util.logging.Slf4j
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.web.servlet.ModelAndView
 
 @Slf4j
 @Secured(['permitAll()'])

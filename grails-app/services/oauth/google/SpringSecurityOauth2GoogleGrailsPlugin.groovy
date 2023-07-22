@@ -1,4 +1,4 @@
-package oauth2.google
+package oauth.google
 
 import grails.plugin.springsecurity.ReflectionUtils
 import grails.plugin.springsecurity.SpringSecurityUtils
@@ -6,8 +6,8 @@ import grails.plugin.springsecurity.oauth2.SpringSecurityOauth2BaseService
 import grails.plugin.springsecurity.oauth2.exception.OAuth2Exception
 import grails.plugins.Plugin
 import groovy.util.logging.Slf4j
-import oauth.google.GoogleOAuth2Service
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 
 @Slf4j
 class SpringSecurityOauth2GoogleGrailsPlugin extends Plugin {

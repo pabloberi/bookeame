@@ -1,4 +1,4 @@
-package oauth2.google
+package oauth.google
 
 import com.github.scribejava.core.model.OAuth2AccessToken
 import grails.plugin.springsecurity.oauth2.token.OAuth2SpringToken
