@@ -8,7 +8,7 @@
                 </tr>
                 <tr class="prop">
                     <td valign="top" class="name"><g:message code="reserva.fechaReserva.label" default="Fecha de Reserva" /></td>
-                    <td valign="top" class="value"><g:formatDate type="date" style="FULL" date="${reserva?.fechaReserva}"/></td>
+                    <td valign="top" class="value"><g:formatDate type="date" style="FULL" date="${reserva?.fechaReserva}" locale="es"/></td>
                 </tr>
                 <g:if test="${servicioReservaList?.size() > 0}">
                     <g:each in="${servicioReservaList}" var="servicioReserva" >

@@ -19,7 +19,7 @@
                         <span class="input-group-text"><i class="fal fa-calendar-alt"></i></span>
                     </div>
                     <input type="text" id="fechaReserva" class="form-control" placeholder="Fecha de Reserva" aria-label="Fecha de Reserva"
-                           value="<g:formatDate type="date" style="FULL" date="${fecha}"/>" readonly />
+                           value="<g:formatDate type="date" style="FULL" date="${fecha}" locale="es"/>" readonly />
                 </div>
             </div>
 
@@ -45,17 +45,18 @@
                 </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="valor">Valor</label>
-                <div class="input-group has-length">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fal fa-dollar-sign"></i></span>
+            <g:if test="${servicioList?.size() <= 0}">
+                <div class="form-group">
+                    <label class="form-label" for="valor">Valor</label>
+                    <div class="input-group has-length">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fal fa-dollar-sign"></i></span>
+                        </div>
+                        <input type="text" name="valor" id="valor" class="form-control" placeholder="Valor" aria-label="Valor"
+                               value="${modulo?.valor}" readonly />
                     </div>
-                    <input type="text" name="valor" id="valor" class="form-control" placeholder="Valor" aria-label="Valor"
-                           value="${modulo?.valor}" readonly />
                 </div>
-            </div>
-
+            </g:if>
             <div class="form-group">
                 <label class="form-label" for="espacio">Espacio</label>
                 <div class="input-group has-length">

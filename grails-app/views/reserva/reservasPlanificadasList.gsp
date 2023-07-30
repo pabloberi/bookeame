@@ -49,7 +49,7 @@
 %{--                                                </button>--}%
 %{--                                            </g:link>--}%
 %{--                                        </td>--}%
-                                        <td><g:formatDate type="date" style="FULL" date="${reserva?.fechaReserva}"/> ${reserva?.horaInicio} - ${reserva?.horaTermino}</td>
+                                        <td><g:formatDate type="date" style="FULL" date="${reserva?.fechaReserva}" locale="es"/> ${reserva?.horaInicio} - ${reserva?.horaTermino}</td>
                                         <td>$ ${reserva?.valor} .-</td>
                                         <td>${reserva?.espacio}</td>
                                         <td>${reserva?.estadoReserva}</td>

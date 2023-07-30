@@ -16,11 +16,14 @@
         </g:if>
         <g:else>
             <div class="row"  style="margin-bottom: 1em; display: flex; justify-content: center;">
-                <div class="col-md-5">
-                    <g:link controller="reserva" action="${ reserva?.tipoReserva?.id != 2 ? 'eliminarReserva' : 'declaracionEliminacionPrepago'}" id="${reserva?.id}">
-                        <button class="btn btn-danger btn-block btn-md mt-3" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">Eliminar Reserva</button>
-                    </g:link>
-                </div>
+                <g:if test="${ reserva?.tipoReserva?.id != 2 }">
+                    <div class="col-md-5">
+                        <g:link controller="reserva" action="eliminarReserva" id="${reserva?.id}">
+                            <button class="btn btn-danger btn-block btn-md mt-3" value="${message(code: 'default.button.delete.label', default: 'Delete')}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">Eliminar Reserva</button>
+                        </g:link>
+                    </div>
+                </g:if>
+
                 <div class="col-md-5" style="color: white;">
                     <a   data-toggle="modal" data-target="#modalReagendar"
                          class="btn btn-success btn-block btn-md mt-3" title="Reagendar">

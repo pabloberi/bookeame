@@ -17,7 +17,7 @@ class ValidadorPermisosUtilService {
         boolean permiso = false
         if( reserva && configuracion ){
             // VALIDA SI ES POSPAGO, SI TIENE PERMISO PARA CANCELAR Y SI ESTA DENTRO DEL PLAZO
-            if( reserva?.tipoReserva?.id == 1 && configuracion?.permitirCancelar
+            if( reserva?.tipoReserva?.id != 2 && configuracion?.permitirCancelar
                     && cumpleConPeriodoAnticpacion(reserva?.inicioExacto, configuracion?.periodoCambioReserva ) ){
                 permiso = true
             }

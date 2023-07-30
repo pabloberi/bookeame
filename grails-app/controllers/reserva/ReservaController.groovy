@@ -110,6 +110,8 @@ class ReservaController {
                 ConfiguracionEmpresa configuracion = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
                 Date fechaCompleta = formatoFechaUtilService?.stringToDateConverter( fecha, "dd-MM-yyyy" )
                 servicioList = servicioUtilService.getServiciosEmpresa(espacio?.empresaId)
+                FlowEmpresa flowEmpresa = FlowEmpresa.findByEmpresa(espacio?.empresa)
+
                 respond espacio, model: [   modulo:         modulo,
                                             fecha:          fechaCompleta,
                                             fechaReserva:   fecha,
@@ -118,8 +120,10 @@ class ReservaController {
                                             token:          reservaUtilService?.encriptarDatosReserva(modulo,espacio,fecha),
                                             reserva:        new Reserva(params),
                                             comision:       prepagoUtilService?.costoTransaccion(modulo?.valor,
-                                                    FlowEmpresa.findByEmpresa(espacio?.empresa).comision?.valor ?: 3.19) ?:0,
-                                            servicioList: servicioList
+                                                    flowEmpresa.comision?.valor) ?:0,
+                                            servicioList: servicioList,
+                                            cobroComision:  flowEmpresa?.comision?.valor,
+                                            textoBotonPrepago: reservaUtilService?.textoValorPrepago(flowEmpresa?.comision?.valor)
                 ]
             }else{
                 flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
@@ -513,7 +517,7 @@ class ReservaController {
             if( modulo != null && params?.fechaReserva != null ){
                 def pattern = "dd-MM-yyyy"
                 def date = new SimpleDateFormat(pattern).parse(params?.fechaReserva)
-                if( reservaDisponible(modulo, params?.fechaReserva) ) {
+                if( reservaUtilService?.reservaDisponible(modulo, params?.fechaReserva) ) {
 
                     try {
                         Reserva reserva = new Reserva()
@@ -588,6 +592,10 @@ class ReservaController {
     @Secured(['ROLE_USER','ROLE_ADMIN', 'ROLE_SUPERUSER'])
     def eliminarReserva(Long id){
         Reserva reserva = Reserva.get(id)
+        if(reserva?.tipoReservaId == 2 ){
+            flash.error="No se ha podido eliminar la reserva porque hay un pago realizado de por medio."
+            redirect(controller: 'reserva', action: 'show', id: reserva?.id)
+        }
         try{
             if(reservaUtilService.eliminarReserva(id)){
                 flash.message="Reserva eliminada correctamente."
@@ -886,7 +894,7 @@ class ReservaController {
                     && validadorPermisosUtilService?.validarRelacionReservaUser(reserva?.id)
                     && validadorPermisosUtilService?.validarRelacionEspacioModulo(modulo, reserva?.espacio)
                     && validadorPermisosUtilService?.validarRelacionModuloFecha(modulo, sdf.parse(params?.fechaReagendar))
-                    && reservaDisponible(modulo, params?.fechaReagendar)
+                    && reservaUtilService?.reservaDisponible(modulo, params?.fechaReagendar)
                 ){
 
                     reserva.horaInicio = modulo?.horaInicio

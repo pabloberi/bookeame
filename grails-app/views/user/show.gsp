@@ -111,7 +111,7 @@
                                 <div class="input-group-prepend">
                                     <span class="input-group-text"></span>
                                 </div>
-                                <g:field type="text" id="nombre" name="nombre" class="form-control" disabled="" value="${user?.nombre + " " + user?.apellidoPaterno + " " + user?.apellidoMaterno}"/>
+                                <g:field type="text" id="nombre" name="nombre" class="form-control" disabled="" value="${user?.getNombreCompleto()}"/>
                             </div>
                         </div>
                     <g:if test="${user?.provider != 'google'}">

@@ -178,7 +178,7 @@ class HomeController {
         d.set(Calendar.MINUTE, 59)
         d.set(Calendar.HOUR_OF_DAY, 23)
         if( empresaInstance && oneYearAgo ){
-            for( int i = 0 ; i <= 12 ; i++ ){
+            for( int i = 0 ; i <= 11 ; i++ ){
                 int valor = 0
                 d.set(Calendar.DAY_OF_MONTH, d.getActualMaximum(Calendar.DAY_OF_MONTH))
 

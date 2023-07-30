@@ -26,8 +26,13 @@ class UserUtilService {
 
             Set<Role> aux = user.getAuthorities()
             List<String> authorities = new ArrayList<>()
-            aux.each { rol ->
-                authorities.add(rol?.authority)
+
+            if( aux?.size() > 0 ){
+                aux.each { rol ->
+                    authorities.add(rol?.authority)
+                }
+            }else{
+                authorities.add("ROLE_USER")
             }
             List<GrantedAuthority> grantedAuthorities = new ArrayList<>();
             authorities.each { authority ->

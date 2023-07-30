@@ -16,6 +16,7 @@ import gestion.NotificationService
 import grails.gorm.transactions.Transactional
 import grails.plugin.springsecurity.annotation.Secured
 import grails.web.mapping.LinkGenerator
+import servicios.Servicio
 import servicios.ServicioReserva
 import servicios.ServicioUtilService
 
@@ -284,6 +285,10 @@ class ReservaUtilService {
             if( validarDatosParaReserva( modulo?.horaInicio, modulo?.horaTermino, modulo?.valor,
                     espacio?.id, fechaString, params?.code ) && reservaDisponible(modulo, fechaString)  ){
                 if( validadorPermisosUtilService.esRoleUser() ){
+                    if( tipoReservaId == 2 && params?.servicio?.toLong() ){
+                        Servicio servicio = Servicio.get(params?.servicio?.toLong())
+                        modulo.valor = servicio?.valor
+                    }
                     crearReservaRs = crearReservaUsuario( conf, modulo, espacio, fecha, tipoReservaId )
                 }
                 if( validadorPermisosUtilService.esRoleAdmin() ){
@@ -672,4 +677,11 @@ class ReservaUtilService {
 
     }
 
+    String textoValorPrepago(float comision){
+        if( comision == 0 ){
+            return "Pago en Linea"
+        }else{
+            return "Pago en Linea + ${comision} % + IVA"
+        }
+    }
 }

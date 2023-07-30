@@ -72,7 +72,7 @@
     </div>
 
     <div class="additional-info">
-        <p><strong>Fecha de Reserva:</strong> <g:formatDate type="date" style="FULL" date="${reserva?.fechaReserva}"/></p>
+        <p><strong>Fecha de Reserva:</strong> <g:formatDate type="date" style="FULL" date="${reserva?.fechaReserva}" locale="es"/></p>
         <p><strong>Hora de Reserva:</strong> ${reserva?.horaInicio}</p>
         <p><strong>Nombre del Cliente:</strong> ${reserva?.usuario?.nombreCompleto ?: reserva?.usuario?.email}</p>
         <p><strong>Lugar:</strong> ${reserva?.espacio?.nombre}</p>

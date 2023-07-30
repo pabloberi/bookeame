@@ -66,10 +66,10 @@ class GoogleOAuthController {
 
     protected Map getDefaultTargetUrl() {
         def config = SpringSecurityUtils.securityConfig
-        General general = General.findByNombre("baseUrl")
+        def savedRequest = SpringSecurityUtils.getSavedRequest(session)
         def defaultUrlOnNull = '/'
-        if (general?.valor && !config.successHandler.alwaysUseDefault) {
-            return [url: (general?.valor  + "/" ?: defaultUrlOnNull)]
+        if (savedRequest && !config.successHandler.alwaysUseDefault) {
+            return [url: (savedRequest.redirectUrl ?: defaultUrlOnNull)]
         }
         return [uri: (config.successHandler.defaultTargetUrl ?: defaultUrlOnNull)]
     }
