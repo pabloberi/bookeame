@@ -26,10 +26,12 @@
     </div>
 
     <div class="col-md-12 mt-4">
-        <button name="registroPago"
-                id="registroPago" type="submit" class="btn btn-success btn-block btn-md mt-12 mb-2" value="1" >
-            Actualizar
-        </button>
+        <g:if test="${ reserva?.tipoReserva?.id != 2 }">
+            <button name="registroPago"
+                    id="registroPago" type="submit" class="btn btn-success btn-block btn-md mt-12 mb-2" value="1" >
+                Actualizar
+            </button>
+        </g:if>
         <g:if test="${ reserva?.valorFinal && reserva?.envioComprobante != true }">
             <a href="${createLink(controller: 'reserva', action: 'enviarComprobante', id: reserva?.id)}"
                onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">
