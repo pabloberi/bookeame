@@ -137,7 +137,7 @@ environments:
         dataSource:
             dbCreate: "update"
             #            url: jdbc:h2:./prodDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
-            url: "jdbc:mysql://localhost:3306/gestion_beta?autoReconnect=true&useSSL=false&serverTimezone=-0400&useLegacyDatetimeCode=false"
+            url: "jdbc:mysql://localhost:3306/gestion?autoReconnect=true&useSSL=false&serverTimezone=-0400&useLegacyDatetimeCode=false"
             username: "root"
             password: 'Gol220022@'
             properties:
