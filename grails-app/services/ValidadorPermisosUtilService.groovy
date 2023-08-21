@@ -1,5 +1,6 @@
 import auth.User
 import configuracionEmpresa.ConfiguracionEmpresa
+import empresa.Empresa
 import espacio.Espacio
 import grails.gorm.transactions.Transactional
 import reserva.Modulo
@@ -16,7 +17,7 @@ class ValidadorPermisosUtilService {
         boolean permiso = false
         if( reserva && configuracion ){
             // VALIDA SI ES POSPAGO, SI TIENE PERMISO PARA CANCELAR Y SI ESTA DENTRO DEL PLAZO
-            if( reserva?.tipoReserva?.id == 1 && configuracion?.permitirCancelar
+            if( reserva?.tipoReserva?.id != 2 && configuracion?.permitirCancelar
                     && cumpleConPeriodoAnticpacion(reserva?.inicioExacto, configuracion?.periodoCambioReserva ) ){
                 permiso = true
             }
@@ -26,15 +27,11 @@ class ValidadorPermisosUtilService {
 
     Boolean userPuedeReagendarReserva(Reserva reserva, ConfiguracionEmpresa configuracion){
         boolean permiso = false
-        User user = springSecurityService.getCurrentUser()
         if( reserva && configuracion ){
-            if( esRoleAdmin(user) ){
-                return true
-            }else{
-                // VALIDA SI TIENE PERMISO PARA REAGENDAR Y SI ESTA DENTRO DEL PLAZO
-                if( configuracion?.permitirReagendar && cumpleConPeriodoAnticpacion(reserva?.inicioExacto, configuracion?.periodoCambioReserva ) ){
-                    permiso = true
-                }
+            if( esRoleAdmin() ){ return true }
+            // VALIDA SI TIENE PERMISO PARA CANCELAR Y SI ESTA DENTRO DEL PLAZO
+            if( configuracion?.permitirReagendar && cumpleConPeriodoAnticpacion(reserva?.inicioExacto, configuracion?.periodoCambioReserva ) ){
+                permiso = true
             }
         }
         return permiso
@@ -59,11 +56,13 @@ class ValidadorPermisosUtilService {
     }
     // FIN PERMISOS DE USUARIOS
 
-    Boolean esRoleUser(User user){
+    Boolean esRoleUser(){
+        User user = springSecurityService.getCurrentUser()
         return user.authorities.findAll().find { it -> it.authority == "ROLE_USER" }
     }
 
-    Boolean esRoleAdmin(User user){
+    Boolean esRoleAdmin(){
+        User user = springSecurityService.getCurrentUser()
         return user.authorities.findAll().find { it -> it.authority == "ROLE_ADMIN" }
     }
 
@@ -81,6 +80,11 @@ class ValidadorPermisosUtilService {
         }else{
             return false
         }
+    }
+
+    Boolean validarRelacionEmpresaUser(Long empresaId){
+        User user = springSecurityService.getCurrentUser()
+        return Empresa.findByUsuario(user).id == empresaId
     }
 
     Boolean validarRelacionEspacioModulo(Modulo modulo, Espacio espacio){
@@ -106,6 +110,22 @@ class ValidadorPermisosUtilService {
                 return false
             }
         }catch(e){ return false }
+    }
+
+    Boolean validarRelacionEspacioUser(Long espacioId){
+        Espacio espacio = Espacio.findById(espacioId)
+        User user = springSecurityService.getCurrentUser()
+
+        if( espacio && user ){
+            Empresa empresa = Empresa.findByUsuario(user)
+            if( empresa?.id == espacio?.empresaId ){
+                return true
+            }else{
+                return false
+            }
+        }else{
+            return false
+        }
     }
     // FIN VALIDACION DE RELACIONES
 

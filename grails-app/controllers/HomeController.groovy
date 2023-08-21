@@ -139,15 +139,11 @@ class HomeController {
         def ingresoTotal = []
         def ingresoOnline = []
         def ingresoOtros = []
-        def topUser = []
-        def topSpace = []
         def topFlujo =[]
         if(user){
             ingresoTotal = ingresoMensual(user, "")
             ingresoOnline = ingresoMensual(user, "online")
             ingresoOtros = ingresoMensual(user, "otros")
-            topUser = topList(user, "user")
-            topSpace = topList(user, "espacio")
             topFlujo = formatFlujo(topList(user, "flujo"))
 
         }
@@ -156,8 +152,6 @@ class HomeController {
                     ingresoTotal: ingresoTotal,
                     ingresoOnline: ingresoOnline,
                     ingresoOtros: ingresoOtros,
-                    topUser: topUser,
-                    topSpace: topSpace,
                     topFlujo: topFlujo,
                     configuracion: ConfiguracionEmpresa.findByEmpresa(Empresa.findByUsuario(user)),
                     espacioList: Espacio.findAllByEmpresa( Empresa.findByUsuario(user) )
@@ -184,9 +178,8 @@ class HomeController {
         d.set(Calendar.MINUTE, 59)
         d.set(Calendar.HOUR_OF_DAY, 23)
         if( empresaInstance && oneYearAgo ){
-            for( int i = 0 ; i <= 12 ; i++ ){
+            for( int i = 0 ; i <= 11 ; i++ ){
                 int valor = 0
-//                d.add(Calendar.MONTH, 1)
                 d.set(Calendar.DAY_OF_MONTH, d.getActualMaximum(Calendar.DAY_OF_MONTH))
 
                 reservaList = Reserva.createCriteria().list {
@@ -200,16 +193,6 @@ class HomeController {
                         estadoReserva{
                             eq('id', 2l)
                         }
-                        evaluacion{
-                            evaluacionToUser{
-                                isNotNull('id')
-                            }
-                        }
-//                        evaluacion{
-//                            evaluacionToUser{
-//                                ne('nota', 1)
-//                            }
-//                        }
                         if( tipo == 'online'){
                             tipoReserva{
                                 eq('id', 2l)
@@ -229,10 +212,6 @@ class HomeController {
                         valor = valor + reserva?.valor
                     }
                 }
-//                if( tipo == 'online'  ){
-//                    def aux =  valor * 1.04
-//                    valor = aux?.toInteger()
-//                }
 
                 ingresoTotal.add([c.getTimeInMillis(), valor ])
                 c.add(Calendar.MONTH, 1)
@@ -270,25 +249,9 @@ class HomeController {
                     estadoReserva{
                         eq('id', 2l)
                     }
-//                    evaluacion{
-//                        evaluacionToUser{
-//                            isNotNull('id')
-//                        }
-//                    }
-                    evaluacion{
-                        evaluacionToUser{
-                             ne('nota', 1)
-                        }
-                    }
                 }
             }
 
-            if( tipo == "user" ){
-                result = reservaList?.groupBy({ reserva -> reserva?.usuario})?.sort{ it?.value?.size() }
-            }
-            if( tipo == "espacio" ){
-                result = reservaList?.groupBy({ reserva -> reserva?.espacio})
-            }
             if( tipo == "flujo" ){
                 result = reservaList?.groupBy({ reserva -> reserva?.horaInicio})
             }
@@ -357,6 +320,8 @@ class HomeController {
 
     def comisionFlow(){
         List<Reserva> reservaList = []
+        Integer recaudacionNeta = 0
+        Integer recaudacionComision = 0
         User user = springSecurityService.getCurrentUser()
         Empresa emp = Empresa.findByUsuario(user)
 
@@ -375,42 +340,43 @@ class HomeController {
                         }
                     }
                 }
+                recaudacionComision = reservaList?.sum { it?.valorComisionFlow ?: 0 }
+                recaudacionNeta = reservaList?.sum { it?.valor ?: 0 } - recaudacionComision
             }
         }catch(e){}
-        render template: '/kpi/tablaComision', model:[reservaList: reservaList]
+        render template: '/kpi/tablaComision', model:[
+                reservaList: reservaList,
+                recaudacionNeta: recaudacionNeta,
+                recaudacionComision: recaudacionComision
+        ]
     }
 
     def recaudacionEspacio(){
         List<Reserva> reservaList = []
+        Integer recaudacion = 0
         User user = springSecurityService.getCurrentUser()
         try{
             def espacioId = params?.espacioId?.toLong()
             Espacio esp = Espacio.get( espacioId )
             if( params?.desde && params?.hasta ){
+                Date desde = sdf.parse(params?.desde)
+                Date hasta = sdf.parse(params?.hasta)
                 reservaList = Reserva.createCriteria().list {
                     and{
-                        between('fechaReserva', sdf.parse(params?.desde), sdf.parse(params?.hasta) )
+                        between('fechaReserva', desde, hasta )
                         estadoReserva{
                             ne('id', 3l)
                         }
                         espacio{
                             eq('id', esp?.id)
                         }
-                        evaluacion{
-                            evaluacionToUser{
-                                isNotNull('id')
-                            }
-                        }
-//                        evaluacion{
-//                            evaluacionToUser{
-//                                ne('id', 1l)
-//                            }
-//                        }
+
                     }
                 }
+                recaudacion = reservaList?.sum { it?.valor ?: 0 }
             }
         }catch(e){}
-        render template: '/kpi/tablaRecaudacion', model:[reservaList: reservaList]
+        render template: '/kpi/tablaRecaudacion', model:[reservaList: reservaList, recaudacion: recaudacion]
     }
 
     @Secured('permitAll')
@@ -442,8 +408,6 @@ class HomeController {
         redirect( controller: 'home', action: 'contactoSoporte')
     }
 
-    def testqr(){}
-
     @Secured(['ROLE_USER'])
     def cargarDireccion(boolean valor){
         boolean exito = false
@@ -472,6 +436,5 @@ class HomeController {
             }
         }
     }
-
 
 }

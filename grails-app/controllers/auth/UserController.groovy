@@ -169,6 +169,7 @@ class UserController {
         redirect( controller: 'user', action: 'show', id: user?.id)
     }
 
+
     @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
     def busquedaInteligenteAdmin(String valor, String roleString, Long moduloId, String fechaReserva){
         Role role = Role.findByAuthority(roleString)
@@ -184,66 +185,21 @@ class UserController {
 
         if( userList.size() > 0 ){
             render template: '/reserva/tablaResultUser', model:[userList: userList, moduloId: moduloId, fechaReserva: fechaReserva]
-
         }else{
             render template: '/reserva/formResultUser', model: [moduloId: moduloId, fechaReserva: fechaReserva]
         }
     }
 
     @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
-    def seleccionUser(Long userId, Long moduloId, String fechaReserva){
+    def seleccionUser(Long userId){
 
         User user = User.findById(userId)
-        Modulo modulo = Modulo.findById(moduloId)
 
         if( user != null ){
-            render template: '/reserva/tablaSelectUser', model: [userSelect: user, modulo: modulo, fechaReserva: fechaReserva]
+            render template: '/reserva/tablaSelectUser', model: [userSelect: user, tokenUser: ""]
         }else{
             return
         }
-    }
-
-    //    CUANDO EL USUARIO NO EXISTE
-    @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
-    def crearUser(String correo, String nombre, String celular, Long moduloId, String fechaReserva){
-        boolean exito = true
-        def role = Role.findByAuthority('ROLE_USER')
-        Modulo modulo = Modulo.findById(moduloId)
-        User  user = new User()
-        try{
-            user = new User(
-                    nombre: nombre ,
-                    email: correo,
-                    username: correo,
-                    password: correo,
-                    celular: celular,
-                    invitado: true,
-                    accountLocked: true
-            ).save(failOnError: true)
-        }catch(e){
-            exito = false
-        }
-
-        if( user != null ){
-            UserRole userRole  = new UserRole()
-            userRole.user = user
-            userRole.role = role
-            try{
-                userRoleService.save(userRole)
-            }catch(e){
-                userService.delete(user?.id)
-                exito = false
-            }
-        }else{
-            exito = false
-        }
-
-        if( exito ){
-            render template: '/reserva/tablaSelectUser', model: [userSelect: user, modulo: modulo, fechaReserva: fechaReserva]
-        }else{
-            render template: '/reserva/formResultUser', model: [modulo: modulo, fechaReserva: fechaReserva]
-        }
-
     }
 
     @Secured(['permitAll'])
@@ -549,22 +505,6 @@ class UserController {
     }
 
     @Secured(['ROLE_SUPERUSER'])
-    def emailTest(Long id){
-        User user = User.get(id)
-
-        String template = groovyPageRenderer.render(template: "/correos/invitarUser", model: [user: user, serverBaseURL: General.findByNombre("baseUrl")?.valor] )
-        utilService.enviarCorreo(user?.email,"noresponder@bookeame.cl", "Correo de prueba", template)
-
-        render view: 'recuperarPass'
-    }
-
-//    @Secured(['permitAll'])
-//    def test(){
-//        User user = User.get(1)
-//        render(template: "/correos/invitarUser", model: [user: user, serverBaseURL: General.findByNombre("baseUrl")?.valor] )
-//    }
-
-    @Secured(['ROLE_SUPERUSER'])
     def bannearUsuario( Long id ){
         try{
             User user = User.get(id)
@@ -591,5 +531,6 @@ class UserController {
         }
         redirect(controller: 'user', action: 'index')
     }
+
 
 }

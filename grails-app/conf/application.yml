@@ -8,6 +8,7 @@ grails:
             # Whether to translate GORM events into Reactor events
             # Disabled by default for performance reasons
             events: false
+
 info:
     app:
         name: '@info.app.name@'
@@ -89,6 +90,20 @@ grails:
                 scriptlet: html
                 taglib: none
                 staticparts: none
+    plugin:
+        springsecurity:
+            oauth2:
+                active: true
+                registration:
+                    roleNames: ['ROLE_USER']
+                providers:
+                    google:
+                        api_key: '913695137763-den74ink8k1a51kf42de5m875b7mopen.apps.googleusercontent.com'               #needed
+                        api_secret: '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'         #needed
+                        successUri: "/oauth2/google/success"    #optional
+                        failureUri: "/oauth2/google/failure"    #optional
+                        callback: "/oauth2/google/callback"     #optional
+                        scopes: 'https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
 #management:
 #    endpoints:
 #        jmx:
@@ -111,7 +126,7 @@ environments:
     development:
         dataSource:
             dbCreate: update
-            url: jdbc:mysql://localhost:3306/gestion?autoReconnect=true&useSSL=false&serverTimezone=-0300&useLegacyDatetimeCode=false
+            url: jdbc:mysql://localhost:3306/gestion?autoReconnect=true&useSSL=false&serverTimezone=-0400&useLegacyDatetimeCode=false
 #            username: "root"
 #            password: 'Gol220022@'
     test:
@@ -122,7 +137,7 @@ environments:
         dataSource:
             dbCreate: "update"
             #            url: jdbc:h2:./prodDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
-            url: "jdbc:mysql://localhost:3306/gestion?autoReconnect=true&useSSL=false&serverTimezone=-0300&useLegacyDatetimeCode=false"
+            url: "jdbc:mysql://localhost:3306/gestion_beta?autoReconnect=true&useSSL=false&serverTimezone=-0400&useLegacyDatetimeCode=false"
             username: "root"
             password: 'Gol220022@'
             properties:
