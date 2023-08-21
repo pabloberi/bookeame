@@ -95,13 +95,13 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
             <a href="${createLink(controller: 'user', action: 'registro')}"><strong>Registrate</strong></a>
         </g:if>
 
-        <oauth2:connect provider="google" id="google-connect-link">
-            <button type="button" class="btn btn-lg btn-outline-secondary mt-6">
-                <asset:image src="/google.png" style="width: 35px;" class="mr-1" />
-                Iniciar con Google
-            </button>
-        </oauth2:connect>
-        <p style="color: black;">Exclusivo clientes</p>
+%{--        <oauth2:connect provider="google" id="google-connect-link">--}%
+%{--            <button type="button" class="btn btn-lg btn-outline-secondary mt-6">--}%
+%{--                <asset:image src="/google.png" style="width: 35px;" class="mr-1" />--}%
+%{--                Iniciar con Google--}%
+%{--            </button>--}%
+%{--        </oauth2:connect>--}%
+%{--        <p style="color: black;">Exclusivo clientes</p>--}%
     </div>
 
 

@@ -17,6 +17,9 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 @Transactional
 class UserUtilService {
 
+    UserService UserService
+    UserRoleService userRoleService
+
     GrailsUser identificarCuenta(String email, String accessToken) {
         try{
             User user = User.findByEmail(email)
@@ -71,11 +74,11 @@ class UserUtilService {
             user.provider = "google"
             user.foto = obtainGoogleUserImage(accessToken)
             user = obtenerInformacionUsuario(user, accessToken)
-            user.save(flush: true)
+            userService.save(user)
             UserRole userRole = new UserRole()
             userRole.user = user
             userRole.role = Role.findByAuthority("ROLE_USER")
-            userRole.save(flush: true)
+            userRoleService.save(userRole)
             return user
         }
     }
