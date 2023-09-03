@@ -122,8 +122,8 @@ class ReservaController {
                                             comision:       prepagoUtilService?.costoTransaccion(modulo?.valor,
                                                     flowEmpresa.comision?.valor) ?:0,
                                             servicioList: servicioList,
-                                            cobroComision:  flowEmpresa?.comision?.valor,
-                                            textoBotonPrepago: reservaUtilService?.textoValorPrepago(flowEmpresa?.comision?.valor)
+                                            cobroComision:  flowEmpresa?.comision?.valor ?:0,
+                                            textoBotonPrepago: reservaUtilService?.textoValorPrepago(flowEmpresa?.comision?.valor ?: 0)
                 ]
             }else{
                 flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
