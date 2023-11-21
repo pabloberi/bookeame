@@ -57,8 +57,6 @@ class Reserva {
         envioComprobante nullable: true
     }
 
-    def utilService
-
     def beforeInsert(){
         try{
             Calendar c = Calendar.getInstance()

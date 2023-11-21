@@ -9,6 +9,7 @@ import dto.EventoCalendario
 import dto.CrearReservaRs
 import espacio.DiaService
 import flow.FlowEmpresa
+import gestion.EncryptionUtilsService
 import gestion.General
 import empresa.Empresa
 import espacio.Espacio
@@ -41,6 +42,8 @@ class ReservaController {
     PrepagoUtilService  prepagoUtilService
     DiaService diaService
     ServicioUtilService servicioUtilService
+    EncryptionUtilsService encryptionUtilsService
+
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy")
     def springSecurityService
     def tokenStorageService
@@ -464,7 +467,7 @@ class ReservaController {
         if( reserva ){
             FlowEmpresa flowEmpresa = FlowEmpresa.findByEmpresa( reserva?.espacio?.empresa)
             if(flowEmpresa){
-                def response = flowService.paymentStatus(token,flowEmpresa?.apiKey, flowEmpresa?.secretKey)
+                def response = flowService.paymentStatus(token,flowEmpresa?.apiKey,flowEmpresa?.secretKey)
 
                 if( response == 2 ){
                     try{

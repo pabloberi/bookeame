@@ -5,6 +5,7 @@ import empresa.Empresa
 import flow.Comision
 import flow.FlowEmpresa
 import flow.FlowEmpresaService
+import gestion.EncryptionUtilsService
 import grails.plugin.springsecurity.annotation.Secured
 import grails.validation.ValidationException
 import static org.springframework.http.HttpStatus.*
@@ -14,6 +15,7 @@ class ConfiguracionEmpresaController {
 
     ConfiguracionEmpresaService configuracionEmpresaService
     FlowEmpresaService flowEmpresaService
+    EncryptionUtilsService encryptionUtilsService
     def springSecurityService
     def flowService
 
@@ -145,8 +147,8 @@ class ConfiguracionEmpresaController {
             if( conf?.tipoPago?.prepago ){
                 if(validarKeys(params?.apiKey, params?.secretKey)){
                     FlowEmpresa flowEmpresa = FlowEmpresa.findByEmpresa(conf?.empresa) ?: new FlowEmpresa()
-                    flowEmpresa.apiKey = params?.apiKey
-                    flowEmpresa.secretKey = params?.secretKey
+                    flowEmpresa.apiKey = encryptionUtilsService.encrypt(params?.apiKey)
+                    flowEmpresa.secretKey = encryptionUtilsService.encrypt(params?.secretKey)
                     flowEmpresa?.empresa = conf?.empresa
                     flowEmpresa?.comision = Comision.get( params?.comision?.toLong() ?: 1l )
 
