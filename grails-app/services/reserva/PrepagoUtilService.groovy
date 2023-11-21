@@ -3,6 +3,7 @@ package reserva
 import auth.User
 import auth.UserService
 import flow.FlowEmpresa
+import gestion.EncryptionUtilsService
 import gestion.General
 import gestion.NotificationService
 import grails.gorm.transactions.Transactional
@@ -12,6 +13,7 @@ import grails.web.mapping.LinkGenerator
 class PrepagoUtilService {
 
     ReservaTempService reservaTempService
+    EncryptionUtilsService encryptionUtilsService
     def flowService
     def springSecurityService
     def formatoFechaUtilService
