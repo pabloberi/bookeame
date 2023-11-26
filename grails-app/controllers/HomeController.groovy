@@ -5,6 +5,7 @@ import configuracionEmpresa.ConfiguracionEmpresa
 import empresa.Empresa
 import espacio.Espacio
 import evaluacion.EvaluacionToUser
+import gestion.General
 import grails.converters.JSON
 import groovy.json.JsonSlurper
 import reserva.Reserva
@@ -388,7 +389,11 @@ class HomeController {
             espacioList = Espacio.findAllByEnabledAndEmpresa(true, empresa)
         }catch(e){}
 
-        respond empresa, model: [espacioList: espacioList]
+        respond empresa, model: [
+                espacioList: espacioList,
+                baseUrl: General.findByNombre('baseUrl')?.valor ?: '',
+                empresaId: empresa?.id
+        ]
     }
 
     def contactoSoporte(){

@@ -1,5 +1,6 @@
 package gestion
 
+import grails.plugin.springsecurity.annotation.Secured
 import grails.validation.ValidationException
 import static org.springframework.http.HttpStatus.*
 
@@ -94,6 +95,19 @@ class GeneralController {
                 redirect action: "index", method: "GET"
             }
             '*'{ render status: NOT_FOUND }
+        }
+    }
+
+    @Secured(['permitAll'])
+    def esWebView(){
+        def listaNegra = ["Instagram", "FB_IAB"]
+        def userAgent = request.getHeader("User-Agent")?.toLowerCase()
+        def esWebView = listaNegra.any { agente -> userAgent?.contains(agente.toLowerCase()) }
+
+        if (esWebView) {
+            render "true"
+        } else {
+            render "false"
         }
     }
 }

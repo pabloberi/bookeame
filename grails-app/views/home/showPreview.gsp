@@ -1,3 +1,4 @@
+<%@ page import="gestion.General" %>
 %{--<asset:javascript src="pagination.js"/>--}%
 <g:applyLayout name="template">
     <link rel="stylesheet" media="screen, print" href="css/fa-brands.css">
@@ -74,21 +75,6 @@
                                     </div>
                                 </div>
                             </div>
-
-%{--                            <div class="col-sm-8 col-md-6 col-lg-5 col-xl-4 ml-auto" style="margin: auto;" >--}%
-%{--                                <div class="page-logo m-0 w-100 align-items-center justify-content-center rounded border-bottom-left-radius-0 border-bottom-right-radius-0 px-4">--}%
-%{--                                    <a href="javascript:void(0)" class="page-logo-link press-scale-down d-flex align-items-center">--}%
-%{--                                        <asset:image src="/bookeame/full-blanco.png" aria-roledescription="logo" style="margin-right: 8em; width: 150px; height: 49px;"/>--}%
-
-%{--                                        --}%%{--            <span class="page-logo-text mr-1">Agenda En Línea</span>--}%
-%{--                                        <i class="fal fa-angle-down d-inline-block ml-1 fs-lg color-primary-300"></i>--}%
-%{--                                    </a>--}%
-%{--                                </div>--}%
-%{--                                <div class="card p-4 border-top-left-radius-0 border-top-right-radius-0">--}%
-%{--                                    <button type="submit" class="btn btn-default float-right">Entrar</button>--}%
-%{--                                </div>--}%
-%{--                            </div>--}%
-
                         </div>
                         </g:form>
                         <div class="position-absolute pos-bottom pos-left pos-right p-3 text-center text-white">
@@ -99,4 +85,51 @@
             </div>
         </div>
     </div>
+    <g:render template="/login/modalWebView" />
+
+    <script>
+        window.onload = function() {
+            isWebView();
+        };
+        function isWebView() {
+            $.ajax({
+                type: 'POST',
+                url: '${g.createLink(controller: 'general', action: 'esWebView')}',
+                data: { d:"" },
+                success: function (data, textStatus) {
+                    if (data === 'true') {
+                        abrirModal();
+                    }
+                }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    return false;
+                }
+            });
+        }
+
+        function abrirModal(){
+            $('#modalwebview').modal('show');
+        }
+
+        // Establecemos las variables
+        var answer = document.getElementById("copyAnswer");
+        var copy   = document.getElementById("copiarEnlace");
+        copy.addEventListener('click', function(e) {
+            var aux = document.createElement("input");
+            aux.setAttribute("value","${baseUrl}/home/showPreview/${empresaId}");
+            document.body.appendChild(aux);
+            aux.select();
+            try {
+                // Copiando el texto seleccionado
+                var successful = document.execCommand('copy');
+
+                if(successful) answer.innerHTML = 'Copiado!';
+                else answer.innerHTML = 'Incapaz de copiar!';
+            } catch (err) {
+                answer.innerHTML = 'Browser no soportado!';
+            }
+            // document.execCommand("copy");
+            document.body.removeChild(aux);
+        });
+
+    </script>
 </g:applyLayout>

@@ -62,30 +62,14 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
                 <g:else>
                     <input type="text" id="username" class="form-control" placeholder="Correo" name='${usernameParameter ?: 'username'}' required>
                 </g:else>
-                %{--<span class="help-block">--}%
-                    %{--Your unique username to app--}%
-                %{--</span>--}%
             </div>
             <div class="form-group">
                 <label class="form-label" for="password">Contraseña</label>
                 <input type="password" id="password" class="form-control" name='${passwordParameter ?: 'password'}' placeholder="Contraseña" required>
-                %{--<span class="help-block">--}%
-                    %{--Your password--}%
-                %{--</span>--}%
             </div>
 
-            %{--<div class="form-group text-left">--}%
-                %{--<div class="custom-control custom-checkbox">--}%
-                    %{--<input type="checkbox" class="custom-control-input" id="rememberme">--}%
-                    %{--<label class="custom-control-label" for="rememberme"> Remember me for the next 30 days</label>--}%
-                %{--</div>--}%
-            %{--</div>--}%
                 <button type="submit" class="btn btn-default float-right">Entrar</button>
-%{--                <div class="g-signin2" data-onsuccess="onSignIn" id="botonGoogle"></div>--}%
-%{--                <label class="form-label" for="botonGoogle">Sólo para usuarios</label>--}%
 
-
-            %{--<input type="submit" class="btn btn-default float-right" id="submit" value="Entrar">--}%
         </form>
     </div>
     <div class="blankpage-footer text-center">
@@ -95,47 +79,68 @@ License: You must have a valid license purchased only from wrapbootstrap.com (li
             <a href="${createLink(controller: 'user', action: 'registro')}"><strong>Registrate</strong></a>
         </g:if>
 
-        <g:if test="${ !params?.disabledOauth }">
+        <g:if test="${ !params?.disabledOauth}">
+            <div id="login-google">
             <oauth2:connect provider="google" id="google-connect-link">
                 <button type="button" class="btn btn-lg btn-outline-secondary mt-6">
                     <asset:image src="/google.png" style="width: 35px;" class="mr-1" />
                     Iniciar con Google
                 </button>
             </oauth2:connect>
+            </div>
         </g:if>
     </div>
 
-
-
 </div>
-
-%{--<div class="login-footer p-2">--}%
-    %{--<div class="row">--}%
-        %{--<div class="col col-sm-12 text-center">--}%
-            %{--<i><strong>System Message:</strong> You were logged out from 198.164.246.1 on Saturday, March, 2017 at 10.56AM</i>--}%
-        %{--</div>--}%
-    %{--</div>--}%
-%{--</div>--}%
-%{--<video poster="img/backgrounds/clouds.png" id="bgvid" playsinline autoplay muted loop>--}%
-    %{--<source src="media/video/cc.webm" type="video/webm">--}%
-    %{--<source src="media/video/cc.mp4" type="video/mp4">--}%
-%{--</video>--}%
-
-<!-- base vendor bundle:
-			 DOC: if you remove pace.js from core please note on Internet Explorer some CSS animations may execute before a page is fully loaded, resulting 'jump' animations
-						+ pace.js (recommended)
-						+ jquery.js (core)
-						+ jquery-ui-cust.js (core)
-						+ popper.js (core)
-						+ bootstrap.js (core)
-						+ slimscroll.js (extension)
-						+ app.navigation.js (core)
-						+ ba-throttle-debounce.js (core)
-						+ waves.js (extension)
-						+ smartpanels.js (extension)
-						+ src/../jquery-snippets.js (core) -->
+<g:render template="modalWebView" />
 <asset:javascript src="vendors.bundle.js"/>
 <asset:javascript src="app.bundle.js"/>
 <!-- Page related scripts -->
+<script>
+    window.onload = function() {
+        isWebView();
+    };
+    function isWebView() {
+        $.ajax({
+            type: 'POST',
+            url: '${g.createLink(controller: 'general', action: 'esWebView')}',
+            data: { d:"" },
+            success: function (data, textStatus) {
+                if (data === 'true') {
+                    esconderBotonGoogle();
+                }
+            }, error: function (XMLHttpRequest, textStatus, errorThrown) {
+                return false;
+            }
+        });
+    }
+
+    function esconderBotonGoogle(){
+        var divAEsconder = document.getElementById('login-google');
+        divAEsconder.style.display = 'none';
+        $('#modalwebview').modal('show');
+    }
+    // Establecemos las variables
+    var answer = document.getElementById("copyAnswer");
+    var copy   = document.getElementById("copiarEnlace");
+    copy.addEventListener('click', function(e) {
+        var aux = document.createElement("input");
+        aux.setAttribute("value","https://www.bookeame.cl/login/auth");
+        document.body.appendChild(aux);
+        aux.select();
+        try {
+            // Copiando el texto seleccionado
+            var successful = document.execCommand('copy');
+
+            if(successful) answer.innerHTML = 'Copiado!';
+            else answer.innerHTML = 'Incapaz de copiar!';
+        } catch (err) {
+            answer.innerHTML = 'Browser no soportado!';
+        }
+        // document.execCommand("copy");
+        document.body.removeChild(aux);
+    });
+
+</script>
 </body>
 </html>
