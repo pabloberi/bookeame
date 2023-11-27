@@ -55,6 +55,9 @@ class Reserva {
         codigo nullable: true
         valorComisionFlow nullable: true
         envioComprobante nullable: true
+//        espacio unique: 'inicioExacto' // Aquí especificamos que la combinación debe ser única
+        espacio unique: ['fechaReserva', 'horaInicio']
+
     }
 
     def beforeInsert(){
