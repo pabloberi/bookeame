@@ -31,22 +31,17 @@ import static org.springframework.http.HttpStatus.*
 class ReservaController {
 
     ReservaService reservaService
-    UserService userService
     EvaluacionService evaluacionService
     EspacioService espacioService
     ReservaTempService reservaTempService
     NotificationService notificationService
 
-    ReservaPlanificadaService reservaPlanificadaService
     ReservaUtilService reservaUtilService
     PrepagoUtilService  prepagoUtilService
-    DiaService diaService
     ServicioUtilService servicioUtilService
-    EncryptionUtilsService encryptionUtilsService
 
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy")
     def springSecurityService
-    def tokenStorageService
     def flowService
     def groovyPageRenderer
     def utilService
@@ -676,39 +671,6 @@ class ReservaController {
         }
     }
 
-    @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
-    def reservaPlanificada(Long id){
-        try{
-            Espacio espacio = Espacio.get(id)
-            User user = springSecurityService.getCurrentUser()
-
-            if ( espacio?.empresa?.usuarioId == user?.id ){
-                List<ReservaPlanificada> reservaPlanificadaList = ReservaPlanificada.findAllByEspacioAndFechaTerminoGreaterThanEquals(espacio, new Date() )
-                respond espacio, model: [ reservaPlanificadaList: reservaPlanificadaList ]
-            }else{
-                render view: '/notFound'
-            }
-        }catch(e){}
-    }
-
-    @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
-    def eliminarReservaPlanificada(Long id){
-        ReservaPlanificada reservaPlanificada = ReservaPlanificada.get(id)
-        def espacioId = reservaPlanificada?.espacioId
-        try{
-            User user = springSecurityService.getCurrentUser()
-            if( user?.id == reservaPlanificada?.empresa?.usuario?.id ){
-                reservaPlanificadaService.delete(reservaPlanificada?.id)
-                flash.message = "Reserva Planificada eliminada correctamente."
-            }else{
-                flash.error = "Ups! Ha ocurrido un error."
-            }
-        }catch(e){
-            flash.error = "Ups! Ha ocurrido un error."
-        }
-        redirect(controller: 'reserva', action: 'reservaPlanificada', id: espacioId)
-    }
-
     @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
     def busquedaInteligenteAdmin(String valor, String roleString){
         Role role = Role.findByAuthority(roleString)
@@ -726,86 +688,6 @@ class ReservaController {
         }else{
             render g.field(id: 'usuario', name: 'usuario', required: 'required', class: 'form-control', value: "Sin coincidencias")
         }
-    }
-
-    @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
-    def crearPlanificada(Long id){
-        List<Reserva> reservaList = []
-        String hini = "${params?.horaInicio}:${params?.minInicio}"
-        String hter = "${params?.horaTermino}:${params?.minTermino}"
-        Espacio espacio = new Espacio()
-        if( (utilService?.validarHorario(hini) < utilService?.validarHorario(hter)) && ( params?.fechaInicio != null && params?.fechaInicio?.length() > 0 ) &&  ( params?.fechaTermino != null && params?.fechaTermino?.length() > 0 )){
-            try{
-                ReservaPlanificada reservaPlanificada = new ReservaPlanificada()
-                espacio = Espacio.get(id)
-                def fechaInicio = sdf.parse(params?.fechaInicio)
-                def fechaTermino = sdf.parse(params?.fechaTermino)
-                reservaPlanificada.fechaInicio = fechaInicio <= fechaTermino ? fechaInicio : fechaTermino
-                reservaPlanificada.fechaTermino = fechaTermino >= fechaInicio ? fechaTermino : fechaInicio
-                reservaPlanificada.horaInicio = hini
-                reservaPlanificada.horaTermino = hter
-                reservaPlanificada.espacio = espacio
-                reservaPlanificada.empresa = espacio?.empresa
-                reservaPlanificada.usuario = User.findById( params?.usuario.toLong() )
-                reservaPlanificada.valorPorReserva = params?.valorPorReserva.toInteger()
-
-                Dia dia = new Dia()
-                dia.lunes = params?.lunes ? true : false
-                dia.martes = params?.martes ? true : false
-                dia.miercoles = params?.miercoles ? true : false
-                dia.jueves = params?.jueves ? true : false
-                dia.viernes = params?.viernes ? true : false
-                dia.sabado = params?.sabado ? true : false
-                dia.domingo = params?.domingo ? true : false
-                diaService.save(dia)
-
-                reservaPlanificada.dias = dia
-                reservaList = crearReservasPlanificadas(reservaPlanificada)
-                reservaPlanificadaService.save(reservaPlanificada)
-                flash.message = "Reservas Planificadas creadas exitosamente!"
-
-                String template = groovyPageRenderer.render(template:  "/correos/confirmacionUserMasivo", model: [user: reservaPlanificada?.usuario, reservaPlanificada: reservaPlanificada])
-                utilService.enviarCorreo(reservaPlanificada?.usuario?.email, "noresponder@bookeame.cl", "Tienes reservas a tu nombre", template)
-
-            }catch(e){ flash.error = "Ups! Ha ocurrido un error."}
-            render(view: 'reservasPlanificadasList', model: [reservaList: reservaList, espacio: espacio])
-        }else{
-            flash.error = "Fechas u Horas NO válidas"
-            redirect(controller: 'reserva', action: 'reservaPlanificada', id: id )
-        }
-
-    }
-
-    List<Reserva> crearReservasPlanificadas( ReservaPlanificada reservaPlanificada ){
-        List<Reserva> reservaList = []
-
-        Calendar p = Calendar.getInstance()
-        Calendar h = Calendar.getInstance()
-        try{
-            p.setTime(reservaPlanificada?.fechaInicio)
-            h.setTime(reservaPlanificada?.fechaTermino)
-
-            while( p.getTime() <= h.getTime() ){
-                if( diaHabilitado(p.get(Calendar.DAY_OF_WEEK), reservaPlanificada?.dias ) ){
-                    if( esHorarioLibre(p.getTime(), reservaPlanificada?.espacio?.id, reservaPlanificada?.horaInicio, reservaPlanificada?.horaTermino ) ){
-                        reservaList.add(
-                                new Reserva(
-                                        usuario: reservaPlanificada?.usuario,
-                                        fechaReserva: p.getTime(),
-                                        horaInicio: reservaPlanificada?.horaInicio,
-                                        horaTermino: reservaPlanificada?.horaTermino,
-                                        valor: reservaPlanificada?.valorPorReserva,
-                                        espacio: reservaPlanificada?.espacio,
-                                        tipoReserva: TipoReserva.get(3),
-                                        estadoReserva: EstadoReserva.get(2)
-                                ).save()
-                        )
-                    }
-                }
-                p.add(Calendar.DAY_OF_YEAR, 1)
-            }
-        }catch(e){}
-        return reservaList
     }
 
     Boolean diaHabilitado(int valorDia, Dia dias){
@@ -852,9 +734,7 @@ class ReservaController {
     }
 
     @Secured(['ROLE_USER','ROLE_SUPERUSER'])
-    def cancelarReserva(){
-
-    }
+    def cancelarReserva(){}
 
     def getHorariosDisponibles(){
         Reserva reserva = Reserva.get(params?.reserva?.toLong())
@@ -921,13 +801,6 @@ class ReservaController {
             }else{ flash.error = "Ups! Ha ocurrido un error" }
         }catch(e){ flash.error = "Ups! Ha ocurrido un error" }
         redirect(controller: 'reserva', action: 'show', id: id)
-    }
-
-    def mesas(){
-        String header = request.getHeader("Authorization");
-        if(header != null && header.startsWith("Bearer"))
-            return header.replace("Bearer ", "");
-        return 0
     }
 
     @Secured(['ROLE_ADMIN','ROLE_SUPERUSER'])

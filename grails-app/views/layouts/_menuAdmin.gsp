@@ -36,6 +36,11 @@
                         <span class="nav-link-text" data-i18n="nav.font_icons_nextgen_icons">Históricas</span>
                     </a>
                 </li>
+                <li>
+                    <a href="${createLink(controller: 'reservaPeriodica', action: 'create')}" title="Reservas Periódicas" data-filter-tags="font icons nextgen icons">
+                        <span class="nav-link-text" data-i18n="nav.font_icons_nextgen_icons">Periódicas</span>
+                    </a>
+                </li>
             </ul>
         </li>
         <li>

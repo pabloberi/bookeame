@@ -67,7 +67,7 @@
     </div>
     %{--<asset:javascript src="vendors.bundle.js"/>--}%
     <asset:javascript src="app.bundle.js"/>
-    <asset:javascript src="datagrid/datatables/datatables.bundle.js"/>
+    <asset:javascript src="datatables.bundle.js"/>
     <script type="text/javascript">
         $(document).ready( function () {
             $('#dt-basic-example').dataTable({

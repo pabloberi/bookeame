@@ -11,7 +11,7 @@
 <div id="panel-7" class="panel">
     <div class="panel-hdr">
         <h2>
-            Crear Reservas Masivas<span class="fw-300"><i>${espacio?.nombre}</i></span>
+            Crear Reservas periodicas<span class="fw-300"><i></i></span>
         </h2>
         <div class="panel-toolbar">
             <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
@@ -24,7 +24,7 @@
             <div class="panel-tag">
                 Puedes crear reservas masivas para un usuario específico
             </div>
-            <g:form method="POST" controller="reserva" action="crearPlanificada" id="${espacio?.id}" >
+            <g:form method="POST" controller="reserva" action="crearPlanificada"  >
                 <div class="form-group row">
                     <div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
                         <label class="form-label">Buscar Usuario</label>
@@ -193,129 +193,129 @@
     </div>
 </div>
 
-%{--<div id="panel-8" class="panel">--}%
-%{--    <div class="panel-hdr">--}%
-%{--        <h2>--}%
-%{--            Lista Reservas Planificadas<span class="fw-300"><i>${espacio?.nombre}</i></span>--}%
-%{--        </h2>--}%
-%{--        <div class="panel-toolbar">--}%
-%{--            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>--}%
-%{--            <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>--}%
-%{--            <button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="Close"></button>--}%
-%{--        </div>--}%
-%{--    </div>--}%
-%{--    <div class="panel-container show">--}%
-%{--        <div class="panel-content">--}%
+<div id="panel-8" class="panel">
+    <div class="panel-hdr">
+        <h2>
+            Lista Reservas periodicas<span class="fw-300"><i>${espacio?.nombre}</i></span>
+        </h2>
+        <div class="panel-toolbar">
+            <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
+            <button class="btn btn-panel" data-action="panel-fullscreen" data-toggle="tooltip" data-offset="0,10" data-original-title="Fullscreen"></button>
+            <button class="btn btn-panel" data-action="panel-close" data-toggle="tooltip" data-offset="0,10" data-original-title="Close"></button>
+        </div>
+    </div>
+    <div class="panel-container show">
+        <div class="panel-content">
 
-%{--            <div class="tab-pane" id="tab-events" role="tabpanel">--}%
-%{--                <div class="d-flex flex-column h-100">--}%
-%{--                    <div class="h-auto">--}%
-%{--                        <table id="dt-basic-example" class="table table-sm m-0 w-100 h-100 border-0 table-striped table-bordered table-hover dataTable no-footer">--}%
-%{--                            <thead class="bg-primary-500">--}%
-%{--                                <tr>--}%
-%{--                                    <th>Acción</th>--}%
-%{--                                    <th>Vigencia</th>--}%
-%{--                                    <th>Usuario</th>--}%
-%{--                                    <th>Hora Inicio</th>--}%
-%{--                                    <th>Hora Término</th>--}%
-%{--                                    <th>Días</th>--}%
-%{--                                </tr>--}%
-%{--                            </thead>--}%
-%{--                            <tbody>--}%
-%{--                            <g:each in="${ reservaPlanificadaList }" status="i" var="reservaPlanificada">--}%
-%{--                                <tr>--}%
-%{--                                    <td>--}%
-%{--                                        <g:link controller="reserva" action="eliminarReservaPlanificada" id="${reservaPlanificada?.id}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">--}%
-%{--                                            <button id="boton${reservaPlanificada?.id}" class="btn btn-danger btn-xs btn-icon" title="eliminar"><i class="fal fa-trash"></i></button>--}%
-%{--                                        </g:link>--}%
-%{--                                        <button id="boton${reservaPlanificada?.id}" class="btn btn-info btn-xs btn-icon" title="ver"><i class="fal fa-eye"></i></button>--}%
+            <div class="tab-pane" id="tab-events" role="tabpanel">
+                <div class="d-flex flex-column h-100">
+                    <div class="h-auto">
+                        <table id="dt-basic-example" class="table table-sm m-0 w-100 h-100 border-0 table-striped table-bordered table-hover dataTable no-footer">
+                            <thead class="bg-primary-500">
+                                <tr>
+                                    <th>Acción</th>
+                                    <th>Vigencia</th>
+                                    <th>Usuario</th>
+                                    <th>Hora Inicio</th>
+                                    <th>Hora Término</th>
+                                    <th>Días</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <g:each in="${ reservaPlanificadaList }" status="i" var="reservaPlanificada">
+                                <tr>
+                                    <td>
+                                        <g:link controller="reserva" action="eliminarReservaPlanificada" id="${reservaPlanificada?.id}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">
+                                            <button id="boton${reservaPlanificada?.id}" class="btn btn-danger btn-xs btn-icon" title="eliminar"><i class="fal fa-trash"></i></button>
+                                        </g:link>
+                                        <button id="boton${reservaPlanificada?.id}" class="btn btn-info btn-xs btn-icon" title="ver"><i class="fal fa-eye"></i></button>
 
-%{--                                    </td>--}%
-%{--                                    <td><g:formatDate format="dd-MM-yyyy" date="${reservaPlanificada?.fechaTermino}"/></td>--}%
-%{--                                    <td>${reservaPlanificada?.usuario}</td>--}%
-%{--                                    <td>${reservaPlanificada?.horaInicio}</td>--}%
-%{--                                    <td>${reservaPlanificada?.horaTermino}</td>--}%
-%{--                                    <td>--}%
-%{--                                        <div class="custom-control-inline pequena hidden-lg-up hidden-md-up">--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="lunes" id="lunes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.lunes) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="lunes${reservaPlanificada?.id}">L</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="martes" id="martes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.martes) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="martes${reservaPlanificada?.id}">M</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="miercoles" id="miercoles${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.miercoles) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="miercoles${reservaPlanificada?.id}">M</label>--}%
-%{--                                            </div>--}%
-%{--                                        </div>--}%
-%{--                                        <div class="custom-control-inline pequena hidden-lg-up hidden-md-up">--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="jueves" id="jueves${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.jueves) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="jueves${reservaPlanificada?.id}">J</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="viernes" id="viernes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.viernes) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="viernes${reservaPlanificada?.id}">V</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="sabado" id="sabado${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.sabado) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="sabado${reservaPlanificada?.id}">S</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="domingo" id="domingo${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.domingo) {%>checked=""<%}%> disabled="" >--}%
-%{--                                                <label class="custom-control-label" for="domingo${reservaPlanificada?.id}">D</label>--}%
-%{--                                            </div>--}%
-%{--                                        </div>--}%
+                                    </td>
+                                    <td><g:formatDate format="dd-MM-yyyy" date="${reservaPlanificada?.fechaTermino}"/></td>
+                                    <td>${reservaPlanificada?.usuario}</td>
+                                    <td>${reservaPlanificada?.horaInicio}</td>
+                                    <td>${reservaPlanificada?.horaTermino}</td>
+                                    <td>
+                                        <div class="custom-control-inline pequena hidden-lg-up hidden-md-up">
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="lunes" id="lunes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.lunes) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="lunes${reservaPlanificada?.id}">L</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="martes" id="martes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.martes) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="martes${reservaPlanificada?.id}">M</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="miercoles" id="miercoles${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.miercoles) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="miercoles${reservaPlanificada?.id}">M</label>
+                                            </div>
+                                        </div>
+                                        <div class="custom-control-inline pequena hidden-lg-up hidden-md-up">
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="jueves" id="jueves${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.jueves) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="jueves${reservaPlanificada?.id}">J</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="viernes" id="viernes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.viernes) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="viernes${reservaPlanificada?.id}">V</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="sabado" id="sabado${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.sabado) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="sabado${reservaPlanificada?.id}">S</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="domingo" id="domingo${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.domingo) {%>checked=""<%}%> disabled="" >
+                                                <label class="custom-control-label" for="domingo${reservaPlanificada?.id}">D</label>
+                                            </div>
+                                        </div>
 
-%{--                                        <div class="custom-control-inline hidden-sm-down">--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="lunes" id="lunes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.lunes) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="lunes${reservaPlanificada?.id}">L</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="martes" id="martes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.martes) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="martes${reservaPlanificada?.id}">M</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="miercoles" id="miercoles${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.miercoles) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="miercoles${reservaPlanificada?.id}">M</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="jueves" id="jueves${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.jueves) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="jueves${reservaPlanificada?.id}">J</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="viernes" id="viernes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.viernes) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="viernes${reservaPlanificada?.id}">V</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="sabado" id="sabado${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.sabado) {%>checked=""<%}%> disabled="">--}%
-%{--                                                <label class="custom-control-label" for="sabado${reservaPlanificada?.id}">S</label>--}%
-%{--                                            </div>--}%
-%{--                                            <div class="custom-control custom-checkbox custom-control-inline">--}%
-%{--                                                <input type="checkbox" class="custom-control-input" name="domingo" id="domingo${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.domingo) {%>checked=""<%}%> disabled="" >--}%
-%{--                                                <label class="custom-control-label" for="domingo${reservaPlanificada?.id}">D</label>--}%
-%{--                                            </div>--}%
-%{--                                        </div>--}%
-%{--                                    </td>--}%
-%{--                                </tr>--}%
-%{--                            </g:each>--}%
-%{--                            </tbody>--}%
-%{--                        </table>--}%
-%{--                    </div>--}%
-%{--                </div>--}%
-%{--            </div>--}%
+                                        <div class="custom-control-inline hidden-sm-down">
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="lunes" id="lunes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.lunes) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="lunes${reservaPlanificada?.id}">L</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="martes" id="martes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.martes) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="martes${reservaPlanificada?.id}">M</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="miercoles" id="miercoles${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.miercoles) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="miercoles${reservaPlanificada?.id}">M</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="jueves" id="jueves${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.jueves) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="jueves${reservaPlanificada?.id}">J</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="viernes" id="viernes${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.viernes) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="viernes${reservaPlanificada?.id}">V</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="sabado" id="sabado${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.sabado) {%>checked=""<%}%> disabled="">
+                                                <label class="custom-control-label" for="sabado${reservaPlanificada?.id}">S</label>
+                                            </div>
+                                            <div class="custom-control custom-checkbox custom-control-inline">
+                                                <input type="checkbox" class="custom-control-input" name="domingo" id="domingo${reservaPlanificada?.id}" <%if(reservaPlanificada?.dias?.domingo) {%>checked=""<%}%> disabled="" >
+                                                <label class="custom-control-label" for="domingo${reservaPlanificada?.id}">D</label>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </g:each>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-%{--        </div>--}%
-%{--    </div>--}%
-%{--</div>--}%
+        </div>
+    </div>
+</div>
 
 
 %{--<asset:javascript src="vendors.bundle.js"/>--}%
 <asset:javascript src="app.bundle.js"/>
-<asset:javascript src="datagrid/datatables/datatables.bundle.js"/>
+<asset:javascript src="datatables.bundle.js"/>
 <script type="text/javascript">
     <g:if test="${flash.message}">
     $(document).ready( function () {
@@ -393,42 +393,42 @@
         return out;
     }
 
-    // $(document).ready( function () {
-    //     $('#dt-basic-example').dataTable({
-    //         language: {
-    //             "sProcessing":     "Procesando...",
-    //             "sLengthMenu":     "Mostrar _MENU_ registros",
-    //             "sZeroRecords":    "No se encontraron resultados",
-    //             "sEmptyTable":     "Ningún dato disponible en esta tabla =(",
-    //             "sInfo":           "Mostrando del _START_ al _END_ de _TOTAL_ registros",
-    //             "sInfoEmpty":      "Sin Registros",
-    //             "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
-    //             "sInfoPostFix":    "",
-    //             // "sSearch":         "Buscar:",
-    //             "sUrl":            "",
-    //             "sInfoThousands":  ",",
-    //             "sLoadingRecords": "Cargando...",
-    //             "oPaginate": {
-    //                 "sFirst":    "Primero",
-    //                 "sLast":     "Último",
-    //                 "sNext":     "Siguiente",
-    //                 "sPrevious": "Anterior"
-    //             },
-    //             "oAria": {
-    //                 "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
-    //                 "sSortDescending": ": Activar para ordenar la columna de manera descendente"
-    //             },
-    //             "buttons": {
-    //                 "copy": "Copiar",
-    //                 "colvis": "Visibilidad"
-    //             }
-    //         },
-    //         responsive: true,
-    //         autoFill: {
-    //             focus: 'hover'
-    //         }
-    //     });
-    // });
+    $(document).ready( function () {
+        $('#dt-basic-example').dataTable({
+            language: {
+                "sProcessing":     "Procesando...",
+                "sLengthMenu":     "Mostrar _MENU_ registros",
+                "sZeroRecords":    "No se encontraron resultados",
+                "sEmptyTable":     "Ningún dato disponible en esta tabla =(",
+                "sInfo":           "Mostrando del _START_ al _END_ de _TOTAL_ registros",
+                "sInfoEmpty":      "Sin Registros",
+                "sInfoFiltered":   "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix":    "",
+                // "sSearch":         "Buscar:",
+                "sUrl":            "",
+                "sInfoThousands":  ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst":    "Primero",
+                    "sLast":     "Último",
+                    "sNext":     "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending":  ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                },
+                "buttons": {
+                    "copy": "Copiar",
+                    "colvis": "Visibilidad"
+                }
+            },
+            responsive: true,
+            autoFill: {
+                focus: 'hover'
+            }
+        });
+    });
 
 </script>
 </body>
