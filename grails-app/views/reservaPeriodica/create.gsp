@@ -7,6 +7,7 @@
 </head>
 <body>
 %{--    <g:render template="/layouts/botonera" params="[controlador: 'Reserva', metodo:'Vigentes' ]" />--}%
+<asset:stylesheet src="/formplugins/select2/select2.bundle.css"/>
 
 <div id="panel-7" class="panel">
     <div class="panel-hdr">
@@ -24,7 +25,7 @@
             <div class="panel-tag">
                 Puedes crear reservas masivas para un usuario específico
             </div>
-            <g:form method="POST" controller="reserva" action="crearPlanificada"  >
+            <g:form method="POST" controller="reservaPeriodica" action="crearPlanificada"  >
                 <div class="form-group row">
                     <div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
                         <label class="form-label">Buscar Usuario</label>
@@ -35,11 +36,12 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
                         <label class="form-label">Usuario</label>
                         <div class="input-group date" >
                             <div id="campoUser" style="width: 80%">
-                                <g:select name="usuario" id="usuario" type="text" class="form-control" required="" from="" noSelection="['': '- Sin Coincidencias -']" style="width: 100%;"  />
+                                <g:select name="usuario" id="usuario" type="text" class="form-control select2" required="" from="" noSelection="['': '- Sin Coincidencias -']" style="width: 100%;"  />
                             </div>
                             <div class="input-group-append" id="cargador">
                                 <span class="input-group-text"><i class="fal fa-user"></i></span>
@@ -47,7 +49,25 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+                    <div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+                        <label class="form-label">Espacio</label>
+                        <div class="input-group date" >
+                            <g:select name="espacio" id="espacio" type="text" class="form-control select2" required="" from="${espacioList}" noSelection="['': '- Selecciona Espacio -']" style="width: 100%;" optionKey="id" />
+                        </div>
+                    </div>
+
+                    <div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
+                        <label class="form-label">Valor Por Reserva</label>
+                        <div class="input-group" >
+                            <g:field name="valorPorReserva" id="valorPorReserva" type="number" class="form-control" required="" placeholder="Ingrese Valor Por Reserva" />
+                            <div class="input-group-append">
+                                <span class="input-group-text"><i class="fal fa-dollar-sign"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
                         <label class="form-label" for="fechaInicio">Fecha de Inicio</label>
                         <div class="input-group">
                             <g:field type="text" id="fechaInicio" name="fechaInicio" data-date-format="dd-mm-yyyy" class="form-control datepicker-1" readonly="" placeholder="dd-mm-aaaa" required="" />
@@ -60,7 +80,7 @@
                     </div>
 
 
-                    <div class="form-group col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+                    <div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
                         <label class="form-label" for="fechaTermino">Fecha de Término</label>
                         <div class="input-group">
                             <g:field type="text" id="fechaTermino" name="fechaTermino" data-date-format="dd-mm-yyyy" class="form-control datepicker-2" readonly="" placeholder="dd-mm-aaaa" required="" />
@@ -73,7 +93,7 @@
                     </div>
 
 
-                    <div class="form-group col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+                    <div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
                         <label class="form-label">Hora Inicio</label>
                         <div class="input-group date" >
                             <select id="horaInicio" name="horaInicio" class="form-control" required="" >
@@ -105,7 +125,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-xs-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+                    <div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
                         <label class="form-label">Hora Término</label>
                         <div class="input-group date" >
                             <select id="horaTermino" name="horaTermino" class="form-control" >
@@ -137,17 +157,7 @@
                         </div>
                     </div>
 
-                    <div class="form-group col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6">
-                        <label class="form-label">Valor Por Reserva</label>
-                        <div class="input-group" >
-                            <g:field name="valorPorReserva" id="valorPorReserva" type="number" class="form-control" required="" placeholder="Ingrese Valor Por Reserva" />
-                            <div class="input-group-append">
-                                <span class="input-group-text"><i class="fal fa-dollar-sign"></i></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group col-xs-12 col-sm-12 col-md-12 col-lg-6 col-xl-6">
+                    <div class="form-group col-xs-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
                         <label class="form-label" >Días Habilitados</label>
 
                         <div class="frame-wrap">
@@ -196,7 +206,7 @@
 <div id="panel-8" class="panel">
     <div class="panel-hdr">
         <h2>
-            Lista Reservas periodicas<span class="fw-300"><i>${espacio?.nombre}</i></span>
+            Lista Reservas periodicas<span class="fw-300"><i></i></span>
         </h2>
         <div class="panel-toolbar">
             <button class="btn btn-panel" data-action="panel-collapse" data-toggle="tooltip" data-offset="0,10" data-original-title="Collapse"></button>
@@ -316,7 +326,11 @@
 %{--<asset:javascript src="vendors.bundle.js"/>--}%
 <asset:javascript src="app.bundle.js"/>
 <asset:javascript src="datatables.bundle.js"/>
+<asset:javascript src="/formplugins/select2/select2.bundle.js"/>
+
 <script type="text/javascript">
+    $('.select2').select2();
+
     <g:if test="${flash.message}">
     $(document).ready( function () {
         toastr.success("${flash.message}");

@@ -690,49 +690,6 @@ class ReservaController {
         }
     }
 
-    Boolean diaHabilitado(int valorDia, Dia dias){
-        switch (valorDia){
-            case 1:
-                return dias?.domingo
-                break
-            case 2:
-                return dias?.lunes
-                break
-            case 3:
-                return dias?.martes
-                break
-            case 4:
-                return dias?.miercoles
-                break
-            case 5:
-                return dias?.jueves
-                break
-            case 6:
-                return dias?.viernes
-                break
-            case 7:
-                return dias?.sabado
-                break
-        }
-    }
-
-    Boolean esHorarioLibre( def fecha, Long espacioId, String horaInicio, String horaTermino ){
-        List<Reserva> reservaList = Reserva.createCriteria().list {
-            and{
-                eq('fechaReserva', fecha)
-                estadoReserva {
-                    ne('id', 3l)
-                }
-                espacio{
-                    eq('id', espacioId)
-                }
-                eq('horaInicio', horaInicio)
-                eq('horaTermino', horaTermino)
-            }
-        }
-        return reservaList?.size() <= 0
-    }
-
     @Secured(['ROLE_USER','ROLE_SUPERUSER'])
     def cancelarReserva(){}
 

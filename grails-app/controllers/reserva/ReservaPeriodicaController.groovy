@@ -35,17 +35,14 @@ class ReservaPeriodicaController {
     }
 
     @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
-    def create(Long id) {
+    def create() {
         try{
-            if( !validadorPermisosUtilService?.validarRelacionEmpresaUser(id) ){
-                render view: '/notFound'
-                return false
-            }
-
-            Empresa empresa = Empresa.get(id)
+            User user = springSecurityService.getCurrentUser()
+            Empresa empresa = Empresa.findByUsuario(user)
 
             List<ReservaPeriodica> reservaPlanificadaList = ReservaPeriodica.findAllByEmpresaAndFechaTerminoGreaterThanEquals(empresa, new Date() )
-            respond empresa, model: [ reservaPlanificadaList: reservaPlanificadaList ]
+            List<Espacio> espacioList = Espacio.findAllByEmpresaAndEnabled(empresa, true)
+            respond empresa, model: [ reservaPlanificadaList: reservaPlanificadaList, espacioList: espacioList ]
 
         }catch(e){
             render view: '/notFound'
@@ -145,6 +142,12 @@ class ReservaPeriodicaController {
         }
         redirect(controller: 'reserva', action: 'reservaPlanificada', id: espacioId)
     }
+// ejemplo chatgpt
+//    def eliminarRegistrosMasivos() {
+//        // Ejemplo: Eliminar todos los registros donde el valor de la columna 'nombre' sea 'Ejemplo'
+//        def cantidadEliminada = TuDominio.executeUpdate("DELETE FROM TuDominio WHERE nombre = :nombre", [nombre: 'Ejemplo'])
+//        println "Se eliminaron ${cantidadEliminada} registros."
+//    }
 
     @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
     def crearPlanificada(Long id){
@@ -152,10 +155,13 @@ class ReservaPeriodicaController {
         String hini = "${params?.horaInicio}:${params?.minInicio}"
         String hter = "${params?.horaTermino}:${params?.minTermino}"
         Espacio espacio = new Espacio()
-        if( (utilService?.validarHorario(hini) < utilService?.validarHorario(hter)) && ( params?.fechaInicio != null && params?.fechaInicio?.length() > 0 ) &&  ( params?.fechaTermino != null && params?.fechaTermino?.length() > 0 )){
+        if( (utilService?.validarHorario(hini) < utilService?.validarHorario(hter))
+                && ( params?.fechaInicio != null && params?.fechaInicio?.length() > 0 )
+                &&  ( params?.fechaTermino != null && params?.fechaTermino?.length() > 0 ))
+        {
             try{
                 ReservaPeriodica reservaPlanificada = new ReservaPeriodica()
-                espacio = Espacio.get(id)
+                espacio = Espacio.get(params?.espacio?.toInteger())
                 def fechaInicio = sdf.parse(params?.fechaInicio)
                 def fechaTermino = sdf.parse(params?.fechaTermino)
                 reservaPlanificada.fechaInicio = fechaInicio <= fechaTermino ? fechaInicio : fechaTermino
@@ -179,6 +185,13 @@ class ReservaPeriodicaController {
 
                 reservaPlanificada.dias = dia
                 reservaList = crearReservasPlanificadas(reservaPlanificada)
+
+                if( reservaList?.size() == 0 ){
+                    flash.error = "No se han creado reservas. Por favor intenta nuevamente."
+                    redirect(controller: 'reservaPeriodica', action: 'create' )
+                    return
+                }
+                // dice reserva planificada pero el service esta con reserva periodica
                 reservaPlanificadaService.save(reservaPlanificada)
                 flash.message = "Reservas Planificadas creadas exitosamente!"
 
@@ -189,40 +202,77 @@ class ReservaPeriodicaController {
             render(view: 'reservasPlanificadasList', model: [reservaList: reservaList, espacio: espacio])
         }else{
             flash.error = "Fechas u Horas NO válidas"
-            redirect(controller: 'reserva', action: 'reservaPlanificada', id: id )
+            redirect(controller: 'reservaPeriodica', action: 'create' )
         }
 
     }
 
-    List<Reserva> crearReservasPlanificadas(ReservaPeriodica reservaPlanificada ){
+    List<Reserva> crearReservasPlanificadas(ReservaPeriodica reservaPeriodica ){
         List<Reserva> reservaList = []
 
         Calendar p = Calendar.getInstance()
         Calendar h = Calendar.getInstance()
         try{
-            p.setTime(reservaPlanificada?.fechaInicio)
-            h.setTime(reservaPlanificada?.fechaTermino)
+            p.setTime(reservaPeriodica?.fechaInicio)
+            h.setTime(reservaPeriodica?.fechaTermino)
+
+            Reserva aux = new Reserva()
+            ReservaPeriodicaReserva auxIdReserva = new ReservaPeriodicaReserva()
 
             while( p.getTime() <= h.getTime() ){
-                if( diaHabilitado(p.get(Calendar.DAY_OF_WEEK), reservaPlanificada?.dias ) ){
-                    if( esHorarioLibre(p.getTime(), reservaPlanificada?.espacio?.id, reservaPlanificada?.horaInicio, reservaPlanificada?.horaTermino ) ){
-                        reservaList.add(
-                                new Reserva(
-                                        usuario: reservaPlanificada?.usuario,
-                                        fechaReserva: p.getTime(),
-                                        horaInicio: reservaPlanificada?.horaInicio,
-                                        horaTermino: reservaPlanificada?.horaTermino,
-                                        valor: reservaPlanificada?.valorPorReserva,
-                                        espacio: reservaPlanificada?.espacio,
-                                        tipoReserva: TipoReserva.get(3),
-                                        estadoReserva: EstadoReserva.get(2)
-                                ).save()
-                        )
+                if( diaHabilitado(p.get(Calendar.DAY_OF_WEEK), reservaPeriodica?.dias ) ){
+                    aux = new Reserva(
+                            usuario: reservaPeriodica?.usuario,
+                            fechaReserva: p.getTime(),
+                            horaInicio: reservaPeriodica?.horaInicio,
+                            horaTermino: reservaPeriodica?.horaTermino,
+                            valor: reservaPeriodica?.valorPorReserva,
+                            espacio: reservaPeriodica?.espacio,
+                            tipoReserva: TipoReserva.get(3),
+                            estadoReserva: EstadoReserva.get(2)
+                    ).save()
+
+                    if( aux != null ){
+                        reservaList.add(aux)
+                        auxIdReserva = new ReservaPeriodicaReserva(
+                                reserva: aux,
+                                reservaPeriodica: reservaPeriodica
+                        ).save()
                     }
+
                 }
                 p.add(Calendar.DAY_OF_YEAR, 1)
             }
-        }catch(e){}
+        }catch(e){
+            return reservaList
+        }
         return reservaList
     }
+
+    Boolean diaHabilitado(int valorDia, Dia dias){
+        switch (valorDia){
+            case 1:
+                return dias?.domingo
+                break
+            case 2:
+                return dias?.lunes
+                break
+            case 3:
+                return dias?.martes
+                break
+            case 4:
+                return dias?.miercoles
+                break
+            case 5:
+                return dias?.jueves
+                break
+            case 6:
+                return dias?.viernes
+                break
+            case 7:
+                return dias?.sabado
+                break
+        }
+    }
+
 }
