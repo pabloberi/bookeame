@@ -18,7 +18,7 @@ class ReservaPeriodica {
     Espacio espacio
     Empresa empresa
 
-//    static hasMany = [reservas: Reserva]
+    static hasMany = [reservas: Reserva]
 
     static constraints = {
         dias nullable: true

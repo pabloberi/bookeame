@@ -235,7 +235,7 @@
                             <g:each in="${ reservaPlanificadaList }" status="i" var="reservaPlanificada">
                                 <tr>
                                     <td>
-                                        <g:link controller="reserva" action="eliminarReservaPlanificada" id="${reservaPlanificada?.id}" onclick="return confirm('${message(code: 'default.button.delete.confirm.message', default: 'Are you sure?')}');">
+                                        <g:link controller="reservaPeriodica" action="eliminarReservaPlanificada" id="${reservaPlanificada?.id}" onclick="return confirm('Al borrar este registro estarás eliminando las reservas asociadas');">
                                             <button id="boton${reservaPlanificada?.id}" class="btn btn-danger btn-xs btn-icon" title="eliminar"><i class="fal fa-trash"></i></button>
                                         </g:link>
                                         <button id="boton${reservaPlanificada?.id}" class="btn btn-info btn-xs btn-icon" title="ver"><i class="fal fa-eye"></i></button>

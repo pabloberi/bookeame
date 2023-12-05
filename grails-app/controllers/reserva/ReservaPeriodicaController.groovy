@@ -4,6 +4,7 @@ import auth.User
 import empresa.Empresa
 import espacio.DiaService
 import espacio.Espacio
+import grails.gorm.transactions.Transactional
 import grails.plugin.springsecurity.annotation.Secured
 import grails.validation.ValidationException
 
@@ -20,6 +21,7 @@ class ReservaPeriodicaController {
     def groovyPageRenderer
     def utilService
     DiaService diaService
+    ReservaUtilService reservaUtilService
 
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy")
 
@@ -125,29 +127,36 @@ class ReservaPeriodicaController {
         }
     }
 
+    @Transactional
     @Secured(['ROLE_ADMIN', 'ROLE_SUPERUSER'])
     def eliminarReservaPlanificada(Long id){
-        ReservaPeriodica reservaPlanificada = ReservaPeriodica.get(id)
-        def espacioId = reservaPlanificada?.espacioId
         try{
+            ReservaPeriodica reservaPeriodica = ReservaPeriodica.get(id)
             User user = springSecurityService.getCurrentUser()
-            if( user?.id == reservaPlanificada?.empresa?.usuario?.id ){
-                reservaPlanificadaService.delete(reservaPlanificada?.id)
-                flash.message = "Reserva Planificada eliminada correctamente."
+
+            if( user?.id == reservaPeriodica?.empresa?.usuario?.id && reservaPeriodica){
+                // Obtén las reservas asociadas
+                def reservasAsociadas = reservaPeriodica.reservas.toList()
+                // Desvincula las reservas de la ReservaPeriodica
+                reservaPeriodica.reservas.clear()
+                // Guarda la ReservaPeriodica después de desvincular las reservas
+                reservaPeriodica.save(flush: true, failOnError: true)
+                // Elimina las reservas desvinculadas
+                reservasAsociadas.each { Reserva reserva ->
+                    reserva.delete(flush: true, failOnError: true)
+                }
+                // Finalmente, elimina la ReservaPeriodica
+                reservaPeriodica.delete(flush: true, failOnError: true)
+
+                flash.message = "Reservas Periódicas eliminadas correctamente."
             }else{
                 flash.error = "Ups! Ha ocurrido un error."
             }
         }catch(e){
             flash.error = "Ups! Ha ocurrido un error."
         }
-        redirect(controller: 'reserva', action: 'reservaPlanificada', id: espacioId)
+        redirect(controller: 'reservaPeriodica', action: 'create')
     }
-// ejemplo chatgpt
-//    def eliminarRegistrosMasivos() {
-//        // Ejemplo: Eliminar todos los registros donde el valor de la columna 'nombre' sea 'Ejemplo'
-//        def cantidadEliminada = TuDominio.executeUpdate("DELETE FROM TuDominio WHERE nombre = :nombre", [nombre: 'Ejemplo'])
-//        println "Se eliminaron ${cantidadEliminada} registros."
-//    }
 
     @Secured(['ROLE_SUPERUSER','ROLE_ADMIN'])
     def crearPlanificada(Long id){
@@ -160,18 +169,18 @@ class ReservaPeriodicaController {
                 &&  ( params?.fechaTermino != null && params?.fechaTermino?.length() > 0 ))
         {
             try{
-                ReservaPeriodica reservaPlanificada = new ReservaPeriodica()
+                ReservaPeriodica reservaPeriodica = new ReservaPeriodica()
                 espacio = Espacio.get(params?.espacio?.toInteger())
                 def fechaInicio = sdf.parse(params?.fechaInicio)
                 def fechaTermino = sdf.parse(params?.fechaTermino)
-                reservaPlanificada.fechaInicio = fechaInicio <= fechaTermino ? fechaInicio : fechaTermino
-                reservaPlanificada.fechaTermino = fechaTermino >= fechaInicio ? fechaTermino : fechaInicio
-                reservaPlanificada.horaInicio = hini
-                reservaPlanificada.horaTermino = hter
-                reservaPlanificada.espacio = espacio
-                reservaPlanificada.empresa = espacio?.empresa
-                reservaPlanificada.usuario = User.findById( params?.usuario.toLong() )
-                reservaPlanificada.valorPorReserva = params?.valorPorReserva.toInteger()
+                reservaPeriodica.fechaInicio = fechaInicio <= fechaTermino ? fechaInicio : fechaTermino
+                reservaPeriodica.fechaTermino = fechaTermino >= fechaInicio ? fechaTermino : fechaInicio
+                reservaPeriodica.horaInicio = hini
+                reservaPeriodica.horaTermino = hter
+                reservaPeriodica.espacio = espacio
+                reservaPeriodica.empresa = espacio?.empresa
+                reservaPeriodica.usuario = User.findById( params?.usuario.toLong() )
+                reservaPeriodica.valorPorReserva = params?.valorPorReserva.toInteger()
 
                 Dia dia = new Dia()
                 dia.lunes = params?.lunes ? true : false
@@ -183,20 +192,22 @@ class ReservaPeriodicaController {
                 dia.domingo = params?.domingo ? true : false
                 diaService.save(dia)
 
-                reservaPlanificada.dias = dia
-                reservaList = crearReservasPlanificadas(reservaPlanificada)
+                reservaPeriodica.dias = dia
+                reservaList = crearReservasPlanificadas(reservaPeriodica)
 
                 if( reservaList?.size() == 0 ){
                     flash.error = "No se han creado reservas. Por favor intenta nuevamente."
                     redirect(controller: 'reservaPeriodica', action: 'create' )
                     return
                 }
+
+                reservaPeriodica.reservas = reservaList
                 // dice reserva planificada pero el service esta con reserva periodica
-                reservaPlanificadaService.save(reservaPlanificada)
+                reservaPlanificadaService.save(reservaPeriodica)
                 flash.message = "Reservas Planificadas creadas exitosamente!"
 
-                String template = groovyPageRenderer.render(template:  "/correos/confirmacionUserMasivo", model: [user: reservaPlanificada?.usuario, reservaPlanificada: reservaPlanificada])
-                utilService.enviarCorreo(reservaPlanificada?.usuario?.email, "noresponder@bookeame.cl", "Tienes reservas a tu nombre", template)
+                String template = groovyPageRenderer.render(template:  "/correos/confirmacionUserMasivo", model: [user: reservaPeriodica?.usuario, reservaPlanificada: reservaPeriodica])
+                utilService.enviarCorreo(reservaPeriodica?.usuario?.email, "noresponder@bookeame.cl", "Tienes reservas a tu nombre", template)
 
             }catch(e){ flash.error = "Ups! Ha ocurrido un error."}
             render(view: 'reservasPlanificadasList', model: [reservaList: reservaList, espacio: espacio])
@@ -217,10 +228,15 @@ class ReservaPeriodicaController {
             h.setTime(reservaPeriodica?.fechaTermino)
 
             Reserva aux = new Reserva()
-            ReservaPeriodicaReserva auxIdReserva = new ReservaPeriodicaReserva()
-
+            Modulo modulo = new Modulo(
+                    horaInicio: reservaPeriodica?.horaInicio,
+                    horaTermino: reservaPeriodica?.horaTermino,
+                    espacio: reservaPeriodica?.espacio
+            )
             while( p.getTime() <= h.getTime() ){
-                if( diaHabilitado(p.get(Calendar.DAY_OF_WEEK), reservaPeriodica?.dias ) ){
+                Date fechaAux = p.getTime()
+                if( diaHabilitado(p.get(Calendar.DAY_OF_WEEK), reservaPeriodica?.dias )
+                    && reservaUtilService?.reservaDisponible(modulo, formatFecha(fechaAux, "dd-MM-yyyy") ) ){
                     aux = new Reserva(
                             usuario: reservaPeriodica?.usuario,
                             fechaReserva: p.getTime(),
@@ -234,10 +250,6 @@ class ReservaPeriodicaController {
 
                     if( aux != null ){
                         reservaList.add(aux)
-                        auxIdReserva = new ReservaPeriodicaReserva(
-                                reserva: aux,
-                                reservaPeriodica: reservaPeriodica
-                        ).save()
                     }
 
                 }
@@ -275,4 +287,13 @@ class ReservaPeriodicaController {
         }
     }
 
+    String formatFecha(Date fecha, String patron){
+        try{
+            SimpleDateFormat sdf = new SimpleDateFormat(patron)
+            def aux = sdf.format(fecha)
+            return aux
+        }catch(e){
+            log.error(e)
+        }
+    }
 }

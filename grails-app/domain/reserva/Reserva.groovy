@@ -9,6 +9,8 @@ import gestion.NotificationService
 import grails.util.Holders
 import servicios.ServicioReserva
 
+import java.text.SimpleDateFormat
+
 class Reserva {
 
     User usuario
@@ -33,9 +35,10 @@ class Reserva {
     Date dateCreated
     Boolean envioComprobante
 
-    static hasMany = [servicioReserva: ServicioReserva]
+    static hasMany = [
+            servicioReserva: ServicioReserva
+    ]
 
-//    static belongsTo = [reservaPlinificada: ReservaPlanificada]
     static constraints = {
         servicioReserva nullable: true
         usuario nullable: true
@@ -75,5 +78,11 @@ class Reserva {
         }catch(e){}
     }
 
+
+    @Override
+    public String toString() {
+        SimpleDateFormat sdf = new SimpleDateFormat("EEEE d 'de' MMMM 'de' yyyy HH:mm:ss")
+        return sdf.format(this?.inicioExacto)
+    }
 }
 

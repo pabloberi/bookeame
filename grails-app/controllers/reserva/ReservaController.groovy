@@ -91,6 +91,13 @@ class ReservaController {
         Espacio espacio = Espacio.findById(id)
         try{
             eventoList = reservaUtilService.getEventosCalendario(espacio?.id)
+            if( validadorPermisosUtilService?.esRoleUser() ){
+                List<Reserva> reservas = Reserva.findAllByEspacioAndInicioExactoGreaterThan(espacio, new Date() )
+                respond espacio, model: [eventoList: eventoList,
+                                         reservas: reservas
+                ]
+                return
+            }
         }catch(e){
             log.error(e)
             flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
