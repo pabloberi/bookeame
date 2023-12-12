@@ -93,12 +93,6 @@
 
                                         <thead class="bg-primary-500">
                                         <tr>
-%{--                                            <th>--}%
-%{--                                                <div class="form-check">--}%
-%{--                                                    <input type="checkbox" class="form-check-input" id="exampleCheck2">--}%
-%{--                                                    <label class="form-check-label" for="exampleCheck2">Todo</label>--}%
-%{--                                                </div>--}%
-%{--                                            </th>--}%
                                             <th>Acción</th>
                                             <th>Hora Inicio</th>
                                             <th>Hora Término</th>
@@ -109,18 +103,10 @@
                                         <tbody>
                                         <g:each in="${moduloList}" status="i" var="modulo" >
                                             <tr>
-%{--                                                <td>--}%
-%{--                                                    <div class="form-check">--}%
-%{--                                                        <input type="checkbox" class="form-check-input" id="exampleCheck${i}">--}%
-%{--                                                        <label class="form-check-label" for="exampleCheck${i}"></label>--}%
-%{--                                                    </div>--}%
-%{--                                                </td>--}%
                                                 <td>
-%{--                                                    <g:link controller="espacio" action="show" id="${modulo?.id}">--}%
                                                     <button id="boton${modulo?.id}" class="btn btn-info btn-xs btn-icon" title="Editar" data-toggle="modal" data-target="#modulo${modulo?.id}">
                                                         <i class="fal fa-pencil"></i>
                                                     </button>
-%{--                                                    </g:link>--}%
                                                 </td>
                                                 <td>${modulo?.horaInicio}</td>
                                                 <td>${modulo?.horaTermino}</td>

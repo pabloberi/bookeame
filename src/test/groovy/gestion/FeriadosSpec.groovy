@@ -1,9 +1,9 @@
-package reserva
+package gestion
 
 import grails.testing.gorm.DomainUnitTest
 import spock.lang.Specification
 
-class ReservaPeriodicaReservaSpec extends Specification implements DomainUnitTest<ReservaPeriodicaReserva> {
+class FeriadosSpec extends Specification implements DomainUnitTest<Feriados> {
 
     def setup() {
     }

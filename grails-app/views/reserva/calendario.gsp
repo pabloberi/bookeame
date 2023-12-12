@@ -14,6 +14,17 @@
 <asset:stylesheet src="miscellaneous/jqvmap/jqvmap.bundle.css"/>
 <asset:stylesheet src="/formplugins/bootstrap-datepicker/bootstrap-datepicker.css"/>
 
+<g:if test="${botonVovler}">
+    <div class="content scaffold-show mb-4" role="main">
+        <div class="col-md-4">
+            <div class="btn-group btn-group-sm" style="float: left; margin-right: 2em;">
+                <a href="${createLink(controller: 'reserva', action: 'selectServicio', id: espacio?.id)}" class="btn btn-info btn-sm" title="Continuar">
+                    < volver
+                </a>
+            </div>
+        </div>
+    </div>
+</g:if>
 
 <div id="panel-7" class="panel">
     <div class="panel-hdr">
@@ -29,33 +40,32 @@
 
     <div class="panel-container show">
 
-        <sec:ifAnyGranted roles="ROLE_USER">
-            <div class="panel-content">
-                <div class="alert bg-fusion-400 border-0 fade show">
-                    <div class="d-flex align-items-center">
-                        <div class="alert-icon">
-                            <i class="fal fa-alarm-clock text-warning"></i>
-                        </div>
-                        <div class="flex-1">
-                            <span class="h5">¿No encuentras el horario que necesitas?</span>
-                            <br>
-                            ¡No te preocupes! Crea una alarma y Bookeame te notificará cuando se libere la hora que buscas.
-                        </div>
-                        <button type="button" class="btn btn-warning btn-w-m fw-500 btn-sm"
-                                data-toggle="modal" data-target="#modalAlarma" >
-                            Crear Alarma
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <g:render template="modalAlarma" />
-        </sec:ifAnyGranted>
+%{--        <sec:ifAnyGranted roles="ROLE_USER">--}%
+%{--            <div class="panel-content">--}%
+%{--                <div class="alert bg-fusion-400 border-0 fade show">--}%
+%{--                    <div class="d-flex align-items-center">--}%
+%{--                        <div class="alert-icon">--}%
+%{--                            <i class="fal fa-alarm-clock text-warning"></i>--}%
+%{--                        </div>--}%
+%{--                        <div class="flex-1">--}%
+%{--                            <span class="h5">¿No encuentras el horario que necesitas?</span>--}%
+%{--                            <br>--}%
+%{--                            ¡No te preocupes! Crea una alarma y Bookeame te notificará cuando se libere la hora que buscas.--}%
+%{--                        </div>--}%
+%{--                        <button type="button" class="btn btn-warning btn-w-m fw-500 btn-sm"--}%
+%{--                                data-toggle="modal" data-target="#modalAlarma" >--}%
+%{--                            Crear Alarma--}%
+%{--                        </button>--}%
+%{--                    </div>--}%
+%{--                </div>--}%
+%{--            </div>--}%
+%{--            <g:render template="modalAlarma" />--}%
+%{--        </sec:ifAnyGranted>--}%
 
         <div class="panel-content row">
             <div class="col-xl-2"></div>
             <div id="calendar" class="col-xl-8"></div>
             <div class="col-xl-2"></div>
-            <!-- Modal : TODO -->
             <div class="modal fade" id="calendarModal" tabindex="-1" role="dialog" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">

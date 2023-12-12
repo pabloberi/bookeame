@@ -1,11 +1,11 @@
-package Alarma
+package feriados
 
 import grails.testing.gorm.DomainUnitTest
 import grails.testing.web.controllers.ControllerUnitTest
 import grails.validation.ValidationException
 import spock.lang.*
 
-class AlarmaControllerSpec extends Specification implements ControllerUnitTest<AlarmaController>, DomainUnitTest<Alarma> {
+class FeriadosControllerSpec extends Specification implements ControllerUnitTest<FeriadosController>, DomainUnitTest<Feriados> {
 
     def populateValidParams(params) {
         assert params != null
@@ -17,7 +17,7 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
 
     void "Test the index action returns the correct model"() {
         given:
-        controller.alarmaService = Mock(AlarmaService) {
+        controller.feriadosService = Mock(FeriadosService) {
             1 * list(_) >> []
             1 * count() >> 0
         }
@@ -26,8 +26,8 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
         controller.index()
 
         then:"The model is correct"
-        !model.alarmaList
-        model.alarmaCount == 0
+        !model.feriadosList
+        model.feriadosCount == 0
     }
 
     void "Test the create action returns the correct model"() {
@@ -35,7 +35,7 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
         controller.create()
 
         then:"The model is correctly created"
-        model.alarma!= null
+        model.feriados!= null
     }
 
     void "Test the save action with a null instance"() {
@@ -45,14 +45,14 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
         controller.save(null)
 
         then:"A 404 error is returned"
-        response.redirectedUrl == '/alarma/index'
+        response.redirectedUrl == '/feriados/index'
         flash.message != null
     }
 
     void "Test the save action correctly persists"() {
         given:
-        controller.alarmaService = Mock(AlarmaService) {
-            1 * save(_ as Alarma)
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * save(_ as Feriados)
         }
 
         when:"The save action is executed with a valid instance"
@@ -60,38 +60,38 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'POST'
         populateValidParams(params)
-        def alarma = new Alarma(params)
-        alarma.id = 1
+        def feriados = new Feriados(params)
+        feriados.id = 1
 
-        controller.save(alarma)
+        controller.save(feriados)
 
         then:"A redirect is issued to the show action"
-        response.redirectedUrl == '/alarma/show/1'
+        response.redirectedUrl == '/feriados/show/1'
         controller.flash.message != null
     }
 
     void "Test the save action with an invalid instance"() {
         given:
-        controller.alarmaService = Mock(AlarmaService) {
-            1 * save(_ as Alarma) >> { Alarma alarma ->
-                throw new ValidationException("Invalid instance", alarma.errors)
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * save(_ as Feriados) >> { Feriados feriados ->
+                throw new ValidationException("Invalid instance", feriados.errors)
             }
         }
 
         when:"The save action is executed with an invalid instance"
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'POST'
-        def alarma = new Alarma()
-        controller.save(alarma)
+        def feriados = new Feriados()
+        controller.save(feriados)
 
         then:"The create view is rendered again with the correct model"
-        model.alarma != null
+        model.feriados != null
         view == 'create'
     }
 
     void "Test the show action with a null id"() {
         given:
-        controller.alarmaService = Mock(AlarmaService) {
+        controller.feriadosService = Mock(FeriadosService) {
             1 * get(null) >> null
         }
 
@@ -104,20 +104,20 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
 
     void "Test the show action with a valid id"() {
         given:
-        controller.alarmaService = Mock(AlarmaService) {
-            1 * get(2) >> new Alarma()
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * get(2) >> new Feriados()
         }
 
         when:"A domain instance is passed to the show action"
         controller.show(2)
 
         then:"A model is populated containing the domain instance"
-        model.alarma instanceof Alarma
+        model.feriados instanceof Feriados
     }
 
     void "Test the edit action with a null id"() {
         given:
-        controller.alarmaService = Mock(AlarmaService) {
+        controller.feriadosService = Mock(FeriadosService) {
             1 * get(null) >> null
         }
 
@@ -130,15 +130,15 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
 
     void "Test the edit action with a valid id"() {
         given:
-        controller.alarmaService = Mock(AlarmaService) {
-            1 * get(2) >> new Alarma()
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * get(2) >> new Feriados()
         }
 
         when:"A domain instance is passed to the show action"
         controller.edit(2)
 
         then:"A model is populated containing the domain instance"
-        model.alarma instanceof Alarma
+        model.feriados instanceof Feriados
     }
 
 
@@ -149,14 +149,14 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
         controller.update(null)
 
         then:"A 404 error is returned"
-        response.redirectedUrl == '/alarma/index'
+        response.redirectedUrl == '/feriados/index'
         flash.message != null
     }
 
     void "Test the update action correctly persists"() {
         given:
-        controller.alarmaService = Mock(AlarmaService) {
-            1 * save(_ as Alarma)
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * save(_ as Feriados)
         }
 
         when:"The save action is executed with a valid instance"
@@ -164,31 +164,31 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'PUT'
         populateValidParams(params)
-        def alarma = new Alarma(params)
-        alarma.id = 1
+        def feriados = new Feriados(params)
+        feriados.id = 1
 
-        controller.update(alarma)
+        controller.update(feriados)
 
         then:"A redirect is issued to the show action"
-        response.redirectedUrl == '/alarma/show/1'
+        response.redirectedUrl == '/feriados/show/1'
         controller.flash.message != null
     }
 
     void "Test the update action with an invalid instance"() {
         given:
-        controller.alarmaService = Mock(AlarmaService) {
-            1 * save(_ as Alarma) >> { Alarma alarma ->
-                throw new ValidationException("Invalid instance", alarma.errors)
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * save(_ as Feriados) >> { Feriados feriados ->
+                throw new ValidationException("Invalid instance", feriados.errors)
             }
         }
 
         when:"The save action is executed with an invalid instance"
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'PUT'
-        controller.update(new Alarma())
+        controller.update(new Feriados())
 
         then:"The edit view is rendered again with the correct model"
-        model.alarma != null
+        model.feriados != null
         view == 'edit'
     }
 
@@ -199,13 +199,13 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
         controller.delete(null)
 
         then:"A 404 is returned"
-        response.redirectedUrl == '/alarma/index'
+        response.redirectedUrl == '/feriados/index'
         flash.message != null
     }
 
     void "Test the delete action with an instance"() {
         given:
-        controller.alarmaService = Mock(AlarmaService) {
+        controller.feriadosService = Mock(FeriadosService) {
             1 * delete(2)
         }
 
@@ -215,7 +215,7 @@ class AlarmaControllerSpec extends Specification implements ControllerUnitTest<A
         controller.delete(2)
 
         then:"The user is redirected to index"
-        response.redirectedUrl == '/alarma/index'
+        response.redirectedUrl == '/feriados/index'
         flash.message != null
     }
 }

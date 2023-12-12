@@ -84,9 +84,28 @@
         </li>
 
         <li>
+            <a href="#" title="feriado" data-filter-tags="font icons">
+                <i class="fal fa-calendar-alt"></i>
+                <span class="nav-link-text" data-i18n="nav.font_icons">Feriados</span>
+            </a>
+            <ul>
+                <li>
+                    <a href="${createLink(controller: 'feriado', action: 'create')}" title="Crear Feriado" data-filter-tags="font icons fontawesome">
+                        <span class="nav-link-text" data-i18n="nav.font_icons_fontawesome">Crear</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="${createLink(controller: 'feriado', action: 'index')}" title="Listar Feriados" data-filter-tags="font icons nextgen icons">
+                        <span class="nav-link-text" data-i18n="nav.font_icons_nextgen_icons">Listar</span>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+        <li>
             <a href="${createLink(controller: 'home', action: 'dashboardKpi')}" title="KPI" data-filter-tags="principal">
                 <i class="fal fa-chart-area"></i>
-                <span class="nav-link-text" data-i18n="nav.ui_components">KPI</span>
+                <span class="nav-link-text" data-i18n="nav.ui_components">Reportes</span>
 %{--                <span class="dl-ref bg-primary-500 hidden-nav-function-minify hidden-nav-function-top">Premium</span>--}%
             </a>
         </li>

@@ -236,7 +236,10 @@ class ReservaPeriodicaController {
             while( p.getTime() <= h.getTime() ){
                 Date fechaAux = p.getTime()
                 if( diaHabilitado(p.get(Calendar.DAY_OF_WEEK), reservaPeriodica?.dias )
-                    && reservaUtilService?.reservaDisponible(modulo, formatFecha(fechaAux, "dd-MM-yyyy") ) ){
+                    && reservaUtilService?.reservaDisponible(
+                        reservaUtilService?.convertModuloToDto(modulo, modulo?.horaTermino, modulo?.valor),
+                        formatFecha(fechaAux, "dd-MM-yyyy") )
+                ){
                     aux = new Reserva(
                             usuario: reservaPeriodica?.usuario,
                             fechaReserva: p.getTime(),

@@ -3,6 +3,8 @@ package Alarma
 import auth.User
 import grails.plugin.springsecurity.annotation.Secured
 import grails.validation.ValidationException
+import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import reserva.Dia
 import reserva.Modulo
 import reserva.Reserva
@@ -93,4 +95,17 @@ class AlarmaController {
             '*'{ render status: NOT_FOUND }
         }
     }
+
+    // se llama desde cronservice
+    @Secured('permitAll')
+    def revisionAlarmas(){
+
+        String authorizationHeader = request.getHeader("Authorization")
+        if(authorizationHeader != "Bearer Azw320147aaBen98itO12Kme10"){
+           return response.setStatus(401)
+        }
+        println("entré")
+        return HttpStatus.OK
+    }
+
 }

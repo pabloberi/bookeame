@@ -5,17 +5,21 @@ import com.sun.org.apache.xpath.internal.operations.Bool
 import configuracionEmpresa.ConfiguracionEmpresa
 import dto.CrearReservaRs
 import dto.EventoCalendario
+import dto.ModuloDto
 import empresa.Empresa
 import espacio.Espacio
 import evaluacion.Evaluacion
 import evaluacion.EvaluacionService
 import evaluacion.EvaluacionToUser
+import feriados.Feriado
 import flow.FlowEmpresa
 import gestion.General
 import gestion.NotificationService
 import grails.gorm.transactions.Transactional
 import grails.plugin.springsecurity.annotation.Secured
 import grails.web.mapping.LinkGenerator
+import groovy.time.TimeCategory
+import org.omg.PortableServer.SERVANT_RETENTION_POLICY_ID
 import servicios.Servicio
 import servicios.ServicioReserva
 import servicios.ServicioUtilService
@@ -82,12 +86,13 @@ class ReservaUtilService {
         return responseEliminar
     }
 
-    List<EventoCalendario> getEventosCalendario(Long id){ //ESPACIOID
+    List<EventoCalendario> getEventosCalendario(Long id, Long servicioId){ //ESPACIOID
         List<EventoCalendario> eventoList = []
         Espacio espacio = Espacio.findById(id)
         ConfiguracionEmpresa conf = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
         String rol = validadorPermisosUtilService?.esRoleAdmin() ? "ADMIN" : "USER"
         try{
+            List<Feriado> feriadoList = Feriado.findAllByEmpresaAndHabilitado(espacio?.empresa, true)
             if( validadorPermisosUtilService?.validarRelacionEspacioUser(id) || rol == "USER" ) {
                 List<Modulo> moduloList
                 List<Reserva> reservaList
@@ -99,15 +104,25 @@ class ReservaUtilService {
                     reservaList = obtenerReservas(espacio, rol)
 
                     eventoList.addAll(
-                            obtenerModulosDisponibles(reservaList, moduloList, dateList)
+                            obtenerModulosDisponibles(reservaList, moduloList, dateList,servicioId)
                     )
 
-                    if( rol == "ADMIN"){
+                    if( rol == "ADMIN" || ( rol == "USER" && Servicio.get(servicioId)) ){
                         for (reserva in reservaList ){
                             eventoList.add( reservaEventoConverter(reserva) )
                         }
                     }
                 }
+
+                if( feriadoList?.size() > 0 ){
+                    def listaEliminar = eventoList.findAll { it ->
+                        feriadoList.find { f -> it?.fechaReserva == f?.fecha }
+                    }
+                    if( listaEliminar?.size() > 0 ){
+                        eventoList.removeAll(listaEliminar)
+                    }
+                }
+
             }
         }catch(e){
             log.error(e)
@@ -116,17 +131,27 @@ class ReservaUtilService {
         return eventoList
     }
 
-    def obtenerModulosDisponibles(List<Reserva> reservaList, List<Modulo> moduloList, def dateList){
+    def obtenerModulosDisponibles(List<Reserva> reservaList, List<Modulo> moduloList, def dateList, Long servicioId){
         List<EventoCalendario> eventoList = []
         for( int i = 0; i < moduloList?.size(); i++){
             for( int j = 0; j < dateList?.size(); j++){
                 if( moduloList[i]?.dias.getProperty(dateList[j][1]) ){
                     if(!reservaList.find{ it ->
-                        it?.horaInicio == moduloList[i]?.horaInicio
+                            (
+                                it?.horaInicio == moduloList[i]?.horaInicio
                                 && it?.horaTermino == moduloList[i]?.horaTermino
-                                && it?.fechaReserva == dateList[j][2] } && esFechaValida( moduloList[i], dateList[j][0] )
+                                && it?.fechaReserva == dateList[j][2]
+                            )
+                            ||
+                            (
+                                    convertHoraToInteger(moduloList[i]?.horaInicio) >= convertHoraToInteger(it?.horaInicio)
+                                    && convertHoraToInteger(moduloList[i]?.horaInicio) < convertHoraToInteger(it?.horaTermino)
+                                    && it?.fechaReserva == dateList[j][2]
+                            )
+                        }
+                        && esFechaValida( moduloList[i], dateList[j][0] )
                     ){
-                        eventoList.add( moduloEventoConverter(moduloList[i], dateList[j]) )
+                        eventoList.add( moduloEventoConverter(moduloList[i], dateList[j], servicioId) )
                     }
                 }
             }
@@ -229,7 +254,7 @@ class ReservaUtilService {
         return evento
     }
 
-    EventoCalendario moduloEventoConverter(Modulo modulo, def fecha){
+    EventoCalendario moduloEventoConverter(Modulo modulo, def fecha, Long servicioId){
         EventoCalendario evento = new EventoCalendario()
         try{
             evento.setTitle("Disponible")
@@ -246,6 +271,10 @@ class ReservaUtilService {
                     grailsLinkGenerator.link(controller: 'reserva', action: 'create', id: modulo?.espacio?.id) +
                             "?fecha=${fecha[3]}" + URLEncoder.encode("&", "UTF-8") + "moduloId=${modulo?.id}"
             )
+            if( servicioId != null ){
+                String url = evento.getUrlSave() + URLEncoder.encode("&", "UTF-8") + "servicioId=${servicioId}"
+                evento.setUrlSave(url)
+            }
         }catch(e){
             log.error(e)
         }
@@ -279,17 +308,21 @@ class ReservaUtilService {
             Espacio espacio = Espacio.get( params?.espacioId?.toLong() )
             ConfiguracionEmpresa conf = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
             Modulo modulo = Modulo.get( params?.moduloId?.toLong() )
+            ModuloDto moduloDto = convertModuloToDto( modulo, params?.horaTermino, params?.valor?.toInteger() )
             def fecha = formatoFechaUtilService?.stringToDateConverter(params?.fechaReserva, "dd-MM-yyyy")
             def fechaString = formatoFechaUtilService.formatFecha(fecha,"dd-MM-yyyy")
 
-            if( validarDatosParaReserva( modulo?.horaInicio, modulo?.horaTermino, modulo?.valor,
-                    espacio?.id, fechaString, params?.code ) && reservaDisponible(modulo, fechaString)  ){
+            if( validarDatosParaReserva( moduloDto.getHoraInicio(), moduloDto.getHoraTermino(), moduloDto.getValor(),
+                    espacio?.id, fechaString, params?.code ) ){
                 if( validadorPermisosUtilService.esRoleUser() ){
-                    if( tipoReservaId == 2 && params?.servicio?.toLong() ){
-                        Servicio servicio = Servicio.get(params?.servicio?.toLong())
-                        modulo.valor = servicio?.valor
+
+                    if( !reservaDisponible(moduloDto, fechaString) ){
+                        crearReservaRs.setCodigo("01")
+                        crearReservaRs.setMensaje("Modulo no disponible")
+                        log.error("Ha ocurrido un error inesperado")
+                        return crearReservaRs
                     }
-                    crearReservaRs = crearReservaUsuario( conf, modulo, espacio, fecha, tipoReservaId )
+                    crearReservaRs = crearReservaUsuario( conf, moduloDto, espacio, fecha, tipoReservaId )
                 }
                 if( validadorPermisosUtilService.esRoleAdmin() ){
                     User user = new User()
@@ -311,20 +344,21 @@ class ReservaUtilService {
                             String template = groovyPageRenderer.render(template:  "/correos/invitarUser", model: [user: user, link: link])
                             utilService?.enviarCorreo(user?.email, "noresponder@bookeame.cl", "Termina tu registro y reserva fácil", template)
                         }
-
                     }
-                    crearReservaRs = crearReservaEmpresa( modulo, espacio, fecha, tipoReservaId, user )
+                    crearReservaRs = crearReservaEmpresa( moduloDto, espacio, fecha, tipoReservaId, user )
                 }
             }else{
                 crearReservaRs.setCodigo("01")
                 crearReservaRs.setMensaje("Modulo no disponible")
                 log.error("Ha ocurrido un error inesperado")
+                return crearReservaRs
             }
 
         }catch(e){
             crearReservaRs.setCodigo("01")
             crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
             log.error("Ha ocurrido un error inesperado")
+            return crearReservaRs
         }
          if( crearReservaRs.getReservaId() && params?.servicio?.toLong()){
              servicioUtilService.guardarServicioEnReserva(params?.servicio?.toLong(), crearReservaRs.getReservaId() )
@@ -332,7 +366,7 @@ class ReservaUtilService {
         return crearReservaRs
     }
 
-    def crearReservaUsuario(ConfiguracionEmpresa conf, Modulo modulo, Espacio espacio, Date fecha, Long tipoReservaId){
+    def crearReservaUsuario(ConfiguracionEmpresa conf, ModuloDto modulo, Espacio espacio, Date fecha, Long tipoReservaId){
         CrearReservaRs crearReservaRs = new CrearReservaRs()
         crearReservaRs.setCodigo("01")
         crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
@@ -341,10 +375,10 @@ class ReservaUtilService {
         if( tipoReservaId == 1 && conf?.tipoPago?.pospago ){
             if( reservaPosPagoValidar(user) ){
                 Reserva reserva = new Reserva(
-                        horaInicio: modulo?.horaInicio,
-                        horaTermino: modulo?.horaTermino,
+                        horaInicio: modulo?.getHoraInicio(),
+                        horaTermino: modulo?.getHoraTermino(),
                         fechaReserva: fecha,
-                        valor: modulo?.valor,
+                        valor: modulo?.getValor(),
                         espacio: espacio,
                         tipoReserva: TipoReserva.findById(1),
                         estadoReserva: EstadoReserva.findById(1),
@@ -366,14 +400,14 @@ class ReservaUtilService {
         }
         if( tipoReservaId == 2 && conf?.tipoPago?.prepago ){
             ReservaTemp reservaTemp = new ReservaTemp()
-            if( modulo?.valor > General.findByNombre('valorMinFlow')?.valor?.toInteger() ?: 0 ){
+            if( modulo?.getValor() > General.findByNombre('valorMinFlow')?.valor?.toInteger() ?: 0 ){
                 try {
                     reservaTemp.usuario = user
                     reservaTemp.fechaReserva = fecha
-                    reservaTemp.horaInicio = modulo?.horaInicio
-                    reservaTemp.horaTermino = modulo?.horaTermino
-                    reservaTemp.valor = modulo?.valor
-                    reservaTemp.espacio = modulo?.espacio
+                    reservaTemp.horaInicio = modulo?.getHoraInicio()
+                    reservaTemp.horaTermino = modulo?.getHoraTermino()
+                    reservaTemp.valor = modulo?.getValor()
+                    reservaTemp.espacio = modulo?.getEspacio()
                     reservaTemp.tipoReserva = TipoReserva.findById(2)
                     reservaTemp.estadoReserva = EstadoReserva.findById(2)
                     reservaTempService.save(reservaTemp)
@@ -406,16 +440,16 @@ class ReservaUtilService {
         return crearReservaRs
     }
 
-    def crearReservaEmpresa( Modulo modulo, Espacio espacio, Date fecha, Long tipoReservaId,User user){
+    def crearReservaEmpresa( ModuloDto modulo, Espacio espacio, Date fecha, Long tipoReservaId,User user){
         CrearReservaRs crearReservaRs = new CrearReservaRs()
         crearReservaRs.setCodigo("01")
         crearReservaRs.setMensaje("Ha ocurrido un error inesperado")
         if( tipoReservaId == 3 ){
             Reserva reserva = new Reserva(
-                    horaInicio: modulo?.horaInicio,
-                    horaTermino: modulo?.horaTermino,
+                    horaInicio: modulo?.getHoraInicio(),
+                    horaTermino: modulo?.getHoraTermino(),
                     fechaReserva: fecha,
-                    valor: modulo?.valor,
+                    valor: modulo?.getValor(),
                     espacio: espacio,
                     tipoReserva: TipoReserva.findById(3),
                     estadoReserva: EstadoReserva.findById(2),
@@ -432,47 +466,57 @@ class ReservaUtilService {
         return crearReservaRs
     }
 
-    def reservaDisponible(Modulo modulo, String fecha){
+    def reservaDisponible(ModuloDto modulo, String fecha){
         Date hoy = new Date()
         def pattern = "dd-MM-yyyy"
         def fechaReserva = new SimpleDateFormat(pattern).parse(fecha)
         Calendar c = Calendar.getInstance()
         c.setTime(fechaReserva)
-        c.set(Calendar.MINUTE, modulo?.horaInicio.substring(3,5).toInteger())
-        c.set(Calendar.HOUR_OF_DAY, modulo?.horaInicio.substring(0,2).toInteger())
-        c.set(Calendar.SECOND, 1)
+        c.set(Calendar.MINUTE, modulo.getHoraInicio().substring(3,5).toInteger())
+        c.set(Calendar.HOUR_OF_DAY, modulo.getHoraInicio().substring(0,2).toInteger())
         Calendar d = Calendar.getInstance()
         d.setTime(fechaReserva)
-        d.set(Calendar.MINUTE, modulo?.horaTermino.substring(3,5).toInteger())
-        d.set(Calendar.HOUR_OF_DAY, modulo?.horaTermino.substring(0,2).toInteger())
-        d.add(Calendar.MINUTE, -1)
+        d.set(Calendar.MINUTE, modulo.getHoraTermino().substring(3,5).toInteger())
+        d.set(Calendar.HOUR_OF_DAY, modulo.getHoraTermino().substring(0,2).toInteger())
         if( c.getTime() >= hoy ){
             List<Reserva> reservaList = Reserva.createCriteria().list {
-                or{
-                    between('inicioExacto', c.getTime(),d.getTime())
-                    between('terminoExacto', c.getTime(),d.getTime())
-                }
                 and{
+                    or{
+                        and{
+                            le('inicioExacto', c.getTime())
+                            gt('terminoExacto', c.getTime())
+                        }
+                        and{
+                            lt('inicioExacto', d.getTime())
+                            ge('terminoExacto', d.getTime())
+                        }
+                    }
                     estadoReserva {
                         ne('id', 3l)
                     }
                     espacio{
-                        eq('id', modulo?.espacio?.id)
+                        eq('id', modulo.getEspacio().id)
                     }
                 }
             }
 
             List<ReservaTemp> reservaTempList = ReservaTemp.createCriteria().list {
-                or{
-                    between('inicioExacto', c.getTime(),d.getTime())
-                    between('terminoExacto', c.getTime(),d.getTime())
-                }
                 and{
+                    or{
+                        and{
+                            le('inicioExacto', c.getTime())
+                            gt('terminoExacto', c.getTime())
+                        }
+                        and{
+                            lt('inicioExacto', d.getTime())
+                            ge('terminoExacto', d.getTime())
+                        }
+                    }
                     estadoReserva {
                         ne('id', 3l)
                     }
                     espacio{
-                        eq('id', modulo?.espacio?.id)
+                        eq('id', modulo.getEspacio().id)
                     }
                 }
             }
@@ -543,9 +587,9 @@ class ReservaUtilService {
         }
     }
 
-    String encriptarDatosReserva(Modulo modulo, Espacio espacio, String fecha){
+    String encriptarDatosReserva(ModuloDto modulo, Espacio espacio, String fecha){
         try{
-            String  datos = datosToJsonConverter(modulo?.horaInicio, modulo?.horaTermino, modulo?.valor, espacio?.id, fecha)
+            String  datos = datosToJsonConverter(modulo.getHoraInicio(), modulo.getHoraTermino(), modulo.getValor(), espacio?.id, fecha)
             SecretKeySpec secretKey = crearClave("Gol220022@")
 
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
@@ -683,5 +727,114 @@ class ReservaUtilService {
         }else{
             return "Pago en Linea + ${comision} % + IVA"
         }
+    }
+
+    def nuevaHoraInicio( String horaInicio, Integer minutosAdicionales ){
+        try{
+            // Dividir la cadena de hora en partes
+            def partesHora = horaInicio.split(':')
+
+            // Extraer la hora y los minutos como enteros
+            Integer horaInt = partesHora[0].toInteger()
+            Integer minutosInt = partesHora[1].toInteger()
+
+            // Sumar los minutos adicionales
+            minutosInt += minutosAdicionales
+
+            // Realizar ajustes si los minutos superan 60
+            if (minutosInt >= 60) {
+                horaInt += minutosInt / 60
+                minutosInt = minutosInt % 60
+            }
+            // Realizar ajustes si las horas superan 24
+            if (horaInt >= 24) {
+                horaInt = horaInt % 24
+            }
+            // Formatear el resultado
+            def nuevaHoraString = "${horaInt.toString().padLeft(2, '0')}:${minutosInt.toString().padLeft(2, '0')}"
+
+            return nuevaHoraString
+        }catch(Exception e){
+            throw new Exception("Error al setear nueva hora termino")
+        }
+    }
+
+    def getServiciosPorEspacio(Long id){
+        List<Servicio> servicioList = new ArrayList<>()
+        try{
+            Espacio espacio = Espacio.get(id)
+            servicioList = Servicio.createCriteria().list {
+                and{
+                    espacios {
+                        eq('id', espacio?.id)
+                    }
+                    eq('habilitado', true)
+                }
+
+            }
+            return servicioList
+        }catch(Exception e){
+            return servicioList
+        }
+    }
+
+    def filtrarModulosPorServicio(List<EventoCalendario> eventoList, Long servicioId){
+        List<EventoCalendario> eventoListAux = eventoList
+        List<EventoCalendario> eliminados = new ArrayList<>()
+
+        try{
+            Servicio servicio = Servicio.get(servicioId)
+
+            Set<String> fechasUnicas = eventoList.collect { it.fechaReserva }.toSet()
+            String[] arregloFechas = fechasUnicas.toArray(new String[fechasUnicas.size()])
+
+            arregloFechas.each {
+                List<EventoCalendario> mismoDiaList = eventoListAux.findAll { aux ->
+                    aux?.fechaReserva ==  it
+                }
+                def horaCierredelDia = convertHoraToInteger(mismoDiaList?.max{ hc -> convertHoraToInteger(hc?.horaTermino) }?.horaTermino)
+
+                mismoDiaList.each { ev ->
+                    if( ev?.getTitle() == "Disponible" ){
+                        def horaInicioModuloInt = convertHoraToInteger(ev?.getHoraInicio())
+                        def nuevoTermino = nuevaHoraInicio(ev?.getHoraInicio(), servicio?.duracionAdicional)
+                        def nuevoTerminoInt = convertHoraToInteger(nuevoTermino)
+
+                        def reservasDelDia = mismoDiaList.findAll { rdd -> rdd?.getTitle() == "Reservado" }
+
+                        if(  reservasDelDia?.findAll { std ->
+                            (convertHoraToInteger(std?.horaInicio) >= horaInicioModuloInt &&
+                                    convertHoraToInteger(std?.horaInicio) < nuevoTerminoInt ) ||
+                            ( convertHoraToInteger(std?.horaTermino) > horaInicioModuloInt &&
+                                    convertHoraToInteger(std?.horaTermino) <= nuevoTerminoInt )
+                        } ){
+                            eliminados.add(ev)
+                        }
+                        if( nuevoTerminoInt >  horaCierredelDia){
+                            eliminados.add(ev)
+                        }
+                    }
+                }
+            }
+            eventoListAux.removeAll(eliminados)
+            return eventoListAux
+        }catch(Exception e){
+            return eventoList
+        }
+    }
+
+    def convertHoraToInteger(String hora){
+        Integer tiempoNumerico = Integer.parseInt(hora.replaceAll(":", ""))
+        return tiempoNumerico
+    }
+
+    ModuloDto convertModuloToDto(Modulo modulo, String horaTermino, Integer valor){
+        ModuloDto moduloDto = new ModuloDto()
+        moduloDto.setEspacio(modulo?.espacio)
+        moduloDto.setHoraInicio(modulo?.horaInicio)
+        moduloDto.setHoraTermino( horaTermino )
+        moduloDto.setValor( valor )
+        moduloDto.setDias(modulo?.dias)
+        return moduloDto
     }
 }

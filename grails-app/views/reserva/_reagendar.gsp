@@ -8,7 +8,7 @@
                 <h4 class="modal-title">Reagendar Reserva</h4>
                 <button type="button" class="close" data-dismiss="modal">x</button>
             </div>
-        <g:form method="POST" controller="reserva" action="reagendarReserva" id="${reserva?.id}" >
+        <g:form method="POST" controller="reserva" action="reagendarReserva" id="${reserva?.id}" params="[servicio: servicio?.id]">
             <div class="modal-body">
                 <div class="form-row">
                     <div class="col-md-12 pr-1">
@@ -61,7 +61,7 @@
         $.ajax({
             type: 'POST',
             url: '${g.createLink(controller: 'reserva', action: 'getHorariosDisponibles')}',
-            data: { fecha: valor, reserva: ${reserva?.id} },
+            data: { fecha: valor, reserva: ${reserva?.id}, servicio: ${servicio?.id ?: '0'} },
             success: function (data, textStatus) {
                 $('#comboHoras').html(data);
             }, error: function (XMLHttpRequest, textStatus, errorThrown) {

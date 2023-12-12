@@ -7,6 +7,7 @@ import auth.UserService
 import configuracionEmpresa.ConfiguracionEmpresa
 import dto.EventoCalendario
 import dto.CrearReservaRs
+import dto.ModuloDto
 import espacio.DiaService
 import flow.FlowEmpresa
 import gestion.EncryptionUtilsService
@@ -86,12 +87,63 @@ class ReservaController {
         }
     }
 
+    def selectServicio(Long id){
+        try{
+            Espacio espacio = Espacio.findById(id)
+            List<Servicio> servicioList = reservaUtilService?.getServiciosPorEspacio(id)
+            if( servicioList?.size() > 0 ){
+                respond servicioList, model:[espacio:espacio, botonVolver: true]
+                return
+            }
+            redirect( controller: 'reserva', action: 'calendario', id: espacio?.id)
+        }catch(Exception e){
+            log.error(e)
+            flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
+        }
+
+    }
+
+    def calendarioServicio(Long id){
+        List<EventoCalendario> eventoList = []
+
+        try{
+            Espacio espacio = Espacio.get(id)
+            Servicio servicio = Servicio.get(params?.servicio?.toLong())
+            if( servicio == null ){
+                redirect(controller: 'reserva', action: 'selectServicio', id: id )
+                return
+            }
+            eventoList = reservaUtilService.getEventosCalendario(espacio?.id, servicio?.id)
+            if( servicio?.duracionAdicional > 0 ){
+                eventoList = reservaUtilService?.filtrarModulosPorServicio(eventoList, servicio?.id)
+            }
+
+            if( validadorPermisosUtilService?.esRoleUser() ){
+                eventoList.removeAll{ eli -> eli?.getTitle() == "Reservado" }
+                // ESTE IF ES PARA LAS ALARMAS
+                List<Reserva> reservas = Reserva.findAllByEspacioAndInicioExactoGreaterThan(espacio, new Date() )
+                render(view: 'calendario', model: [eventoList: eventoList,
+                                                   reservas: reservas,
+                                                   espacio: espacio
+                ])
+                return
+            }
+            render(view: 'calendario', model: [eventoList: eventoList, espacio: espacio, servicio: servicio])
+            return
+        }catch(Exception e){
+            log.error(e)
+            flash.error = "Ha ocurrido un error inesperado. Por favor intenta más tarde."
+            redirect(controller: 'reserva', action: 'selectServicio', id: id )
+            return
+        }
+    }
+
     def calendario(Long id){
         List<EventoCalendario> eventoList = []
         Espacio espacio = Espacio.findById(id)
         try{
-            eventoList = reservaUtilService.getEventosCalendario(espacio?.id)
-            if( validadorPermisosUtilService?.esRoleUser() ){
+            eventoList = reservaUtilService.getEventosCalendario(espacio?.id, null)
+            if( validadorPermisosUtilService?.esRoleUser() ){ // ESTE IF ES PARA LAS ALARMAS
                 List<Reserva> reservas = Reserva.findAllByEspacioAndInicioExactoGreaterThan(espacio, new Date() )
                 respond espacio, model: [eventoList: eventoList,
                                          reservas: reservas
@@ -105,8 +157,11 @@ class ReservaController {
         respond espacio, model: [eventoList: eventoList]
     }
 
-    def create(String fecha, String moduloId, Long id) {
+    def create(String fecha, String moduloId, Long id, Long servicioId) {
         List<Servicio> servicioList = []
+        String horaTermino
+        Integer valor
+        ModuloDto moduloDto = new ModuloDto()
 
         try{
             if( reservaUtilService?.puedeCrearReserva(moduloId?.toLong(), id, fecha) ){
@@ -114,19 +169,29 @@ class ReservaController {
                 Modulo modulo = Modulo.get( moduloId?.toLong() )
                 ConfiguracionEmpresa configuracion = ConfiguracionEmpresa.findByEmpresa(espacio?.empresa)
                 Date fechaCompleta = formatoFechaUtilService?.stringToDateConverter( fecha, "dd-MM-yyyy" )
-                servicioList = servicioUtilService.getServiciosEmpresa(espacio?.empresaId)
+                Servicio servicio = Servicio.get(servicioId)
                 FlowEmpresa flowEmpresa = FlowEmpresa.findByEmpresa(espacio?.empresa)
+                if( servicio != null && servicio?.duracionAdicional > 0){
+                    horaTermino = reservaUtilService?.nuevaHoraInicio(modulo?.horaInicio, servicio?.duracionAdicional)
+                    valor = servicio?.valor
+                }else{
+                    horaTermino = modulo?.horaTermino
+                    valor = modulo?.valor
+                }
+                moduloDto = reservaUtilService?.convertModuloToDto(modulo, horaTermino, valor)
 
                 respond espacio, model: [   modulo:         modulo,
+                                            horaTermino:    horaTermino,
+                                            valor:          valor,
                                             fecha:          fechaCompleta,
                                             fechaReserva:   fecha,
                                             prepago:        configuracion?.tipoPago?.prepago,
                                             pospago:        configuracion?.tipoPago?.pospago,
-                                            token:          reservaUtilService?.encriptarDatosReserva(modulo,espacio,fecha),
+                                            token:          reservaUtilService?.encriptarDatosReserva(moduloDto,espacio,fecha),
                                             reserva:        new Reserva(params),
                                             comision:       prepagoUtilService?.costoTransaccion(modulo?.valor,
                                                     flowEmpresa.comision?.valor) ?:0,
-                                            servicioList: servicioList,
+                                            servicio: servicio,
                                             cobroComision:  flowEmpresa?.comision?.valor ?:0,
                                             textoBotonPrepago: reservaUtilService?.textoValorPrepago(flowEmpresa?.comision?.valor ?: 0)
                 ]
@@ -164,6 +229,7 @@ class ReservaController {
                                 fecha: params?.fechaReserva,
                                 moduloId: params?.moduloId,
                                 id: params?.espacioId
+//                                servicioId: null
 
                         ])
             }
@@ -174,7 +240,7 @@ class ReservaController {
                     fecha: params?.fechaReserva,
                     moduloId: params?.moduloId,
                     id: params?.espacioId
-
+//                                servicioId: null
             ])
         }
     }
@@ -522,7 +588,10 @@ class ReservaController {
             if( modulo != null && params?.fechaReserva != null ){
                 def pattern = "dd-MM-yyyy"
                 def date = new SimpleDateFormat(pattern).parse(params?.fechaReserva)
-                if( reservaUtilService?.reservaDisponible(modulo, params?.fechaReserva) ) {
+                if( reservaUtilService?.reservaDisponible(
+                        reservaUtilService?.convertModuloToDto(modulo, modulo?.horaTermino, modulo?.valor),
+                        params?.fechaReserva)
+                ) {
 
                     try {
                         Reserva reserva = new Reserva()
@@ -700,40 +769,80 @@ class ReservaController {
     @Secured(['ROLE_USER','ROLE_SUPERUSER'])
     def cancelarReserva(){}
 
+//    def getHorariosDisponibles(){
+//        Reserva reserva = Reserva.get(params?.reserva?.toLong())
+//        List<Modulo> moduloList = []
+//        List<Reserva> reservaList = []
+//        String nombreDia
+//        Calendar c = Calendar.getInstance()
+//        List<Modulo> horarioList = []
+//        List<EventoCalendario> eventoCalendarioList = new ArrayList<>()
+//        if( reserva && params?.fecha ){
+//            try{
+//                def fechaNuevaReserva = sdf.parse(params?.fecha)
+//                c.setTime(fechaNuevaReserva)
+//                nombreDia = formatoFechaUtilService?.obtenerNombreDia( c.get(Calendar.DAY_OF_WEEK))
+//
+//                moduloList = Modulo.findAllByEspacio(reserva?.espacio)
+//                reservaList = Reserva.findAllByFechaReservaAndEspacio(c.getTime(), reserva?.espacio)
+//
+//                for( modulo in moduloList ){
+//                    if( modulo?.dias?.getProperty(nombreDia) ){
+//                        if( !reservaList.find{ it?.horaInicio == modulo?.horaInicio } ){
+//                            horarioList.add(modulo)
+//                        }
+//                    }
+//                }
+//                Long servicioId = params?.servicio?.toLong() ?: null
+//                horarioList.each { it ->
+//                    eventoCalendarioList.add(
+//                            reservaUtilService?.moduloEventoConverter(it, params?.fecha, servicioId)
+//                    )
+//                }
+//                if( servicioId != null ){
+//                    eventoCalendarioList = reservaUtilService?.filtrarModulosPorServicio(eventoCalendarioList, servicioId)
+//                }
+//            }catch(e){}
+//        }
+//        render g.select(id: 'horario', name: 'horario',required: 'required', from: horarioList.sort{ it?.horaInicio }, optionKey: 'id', optionValue: 'horarioModulo' , noSelection: ['':'- Seleccione Horario -'], class: "form-control select2", style:"width: 100%;" )
+//
+//    }
+
     def getHorariosDisponibles(){
-        Reserva reserva = Reserva.get(params?.reserva?.toLong())
-        List<Modulo> moduloList = []
-        List<Reserva> reservaList = []
-        String nombreDia
-        Calendar c = Calendar.getInstance()
-        List<Modulo> horarioList = []
-
-        if( reserva && params?.fecha ){
-            try{
-                def fechaNuevaReserva = sdf.parse(params?.fecha)
-                c.setTime(fechaNuevaReserva)
-                nombreDia = formatoFechaUtilService?.obtenerNombreDia( c.get(Calendar.DAY_OF_WEEK))
-
-                moduloList = Modulo.findAllByEspacio(reserva?.espacio)
-                reservaList = Reserva.findAllByFechaReservaAndEspacio(c.getTime(), reserva?.espacio)
-
-                for( modulo in moduloList ){
-                    if( modulo?.dias?.getProperty(nombreDia) ){
-                        if( !reservaList.find{ it?.horaInicio == modulo?.horaInicio } ){
-                            horarioList.add(modulo)
-                        }
-                    }
-                }
-            }catch(e){}
+        List<EventoCalendario> eventoCalendarioList = new ArrayList<>();
+        try{
+            Reserva reserva = Reserva.get(params?.reserva?.toLong())
+            eventoCalendarioList = reservaUtilService?.getEventosCalendario(reserva?.espacio?.id, params?.servicio?.toLong() ?: null)
+            if( params?.servicio?.toLong() &&  params?.servicio != "0"){
+                eventoCalendarioList = reservaUtilService?.filtrarModulosPorServicio(eventoCalendarioList, params?.servicio?.toLong())
+            }
+            eventoCalendarioList = eventoCalendarioList.findAll { it ->
+                it?.fechaReserva == params?.fecha && it?.getTitle() == "Disponible" }
+        }catch(Exception e){
+            log.error("error get eventos")
         }
-        render g.select(id: 'horario', name: 'horario',required: 'required', from: horarioList.sort{ it?.horaInicio }, optionKey: 'id', optionValue: 'horarioModulo' , noSelection: ['':'- Seleccione Horario -'], class: "form-control select2", style:"width: 100%;" )
+        render g.select(id: 'horario', name: 'horario',required: 'required', from: eventoCalendarioList.sort{ it?.horaInicio }, optionKey: "horaInicio" , optionValue: 'horaInicio' , noSelection: ['':'- Seleccione Horario -'], class: "form-control select2", style:"width: 100%;" )
     }
 
     def reagendarReserva(Long id){
         try{
+            String nuevaHoraTermino
+            Integer nuevoValor
+            Servicio servicio = null
             Reserva reserva = Reserva.get(id)
+            if( params?.servicio != null && params?.servicio != "" ){
+                servicio = Servicio.get(params?.servicio?.toLong())
+            }
             ConfiguracionEmpresa configuracionEmpresa = ConfiguracionEmpresa.findByEmpresa(reserva?.espacio?.empresa)
-            Modulo modulo = Modulo.get(params?.horario?.toLong())
+//            Modulo modulo = Modulo.get(params?.horario?.toLong())
+            Modulo modulo = Modulo.findByEspacioAndHoraInicio(reserva?.espacio, params?.horario)
+            if( servicio != null ){
+                nuevaHoraTermino = reservaUtilService?.nuevaHoraInicio(params?.horario, servicio?.duracionAdicional) // el nombre de ese metodo no tiene ningun sentido
+                nuevoValor = servicio?.valor
+            }else{
+                nuevaHoraTermino = modulo?.horaTermino
+                nuevoValor = modulo?.valor
+            }
             String templateEmpresa
             String templateUser
             if( reserva && modulo ){
@@ -741,13 +850,16 @@ class ReservaController {
                     && validadorPermisosUtilService?.validarRelacionReservaUser(reserva?.id)
                     && validadorPermisosUtilService?.validarRelacionEspacioModulo(modulo, reserva?.espacio)
                     && validadorPermisosUtilService?.validarRelacionModuloFecha(modulo, sdf.parse(params?.fechaReagendar))
-                    && reservaUtilService?.reservaDisponible(modulo, params?.fechaReagendar)
+                    && reservaUtilService?.reservaDisponible(
+                        reservaUtilService?.convertModuloToDto(modulo, nuevaHoraTermino, nuevoValor),
+                        params?.fechaReagendar
+                )
                 ){
 
                     reserva.horaInicio = modulo?.horaInicio
-                    reserva.horaTermino = modulo?.horaTermino
+                    reserva.horaTermino = nuevaHoraTermino
                     reserva.fechaReserva = sdf.parse(params?.fechaReagendar)
-                    reserva.valor = modulo?.valor
+                    reserva.valor =nuevoValor
                     reservaService.save(reserva)
                     flash.message = "Reserva Reagendada exitosamente!"
 
@@ -833,4 +945,5 @@ class ReservaController {
         }
         redirect(controller: 'reserva', action: 'show', id: id)
     }
+
 }
