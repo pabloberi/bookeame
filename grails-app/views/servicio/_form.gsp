@@ -42,12 +42,12 @@
 			</div>
 
 			<div class="form-group">
-				<label class="form-label" for="valor">Duración Adicional en minutos</label>
+				<label class="form-label" for="valor">Duración en minutos</label>
 				<div class="input-group">
 					<div class="input-group-prepend">
 						<span class="input-group-text"></span>
 					</div>
-					<g:field type="number" id="duracionAdicional" min="0" name="duracionAdicional" class="form-control" placeholder="SI NO NECESITA DEBE SER 0" required="" value="${servicio?.duracionAdicional}" onkeyup="this.value=Numeros(this.value)"/>
+					<g:field type="number" id="duracionAdicional" min="0" name="duracionAdicional" class="form-control" placeholder="Duración en minutos" required="" value="${servicio?.duracionAdicional}" onkeyup="this.value=Numeros(this.value)"/>
 				</div>
 			</div>
 
