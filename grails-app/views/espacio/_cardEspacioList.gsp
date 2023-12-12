@@ -20,7 +20,7 @@
                 <div class="card-footer">
                     <g:if test="${espacio?.tieneModulos }">
                     <div class="btn-group btn-group-sm" style="float: right;">
-                        <a href="${createLink(controller: 'reserva', action: 'calendario', id: espacio?.id)}" class="btn btn-info btn-sm" title="Crear Reserva"><i class="fal fa-calendar-alt"></i></a>
+                        <a href="${createLink(controller: 'reserva', action: 'selectServicio', id: espacio?.id)}" class="btn btn-info btn-sm" title="Crear Reserva"><i class="fal fa-calendar-alt"></i></a>
                     </div>
                     </g:if>
                     <g:else>

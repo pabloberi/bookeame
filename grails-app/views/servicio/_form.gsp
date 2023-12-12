@@ -41,15 +41,27 @@
 				</div>
 			</div>
 
-%{--			<div class="form-group">--}%
-%{--				<label class="form-label" for="valor">Duración</label>--}%
-%{--				<div class="input-group">--}%
-%{--					<div class="input-group-prepend">--}%
-%{--						<span class="input-group-text"></span>--}%
-%{--					</div>--}%
-%{--					<g:field type="number" id="duracion" min="1" name="duracion" class="form-control" placeholder="Duración del Servicio" required="" value="${servicio?.duracion}" onkeyup="this.value=Numeros(this.value)"/>--}%
-%{--				</div>--}%
-%{--			</div>--}%
+			<div class="form-group">
+				<label class="form-label" for="valor">Duración Adicional en minutos</label>
+				<div class="input-group">
+					<div class="input-group-prepend">
+						<span class="input-group-text"></span>
+					</div>
+					<g:field type="number" id="duracionAdicional" min="0" name="duracionAdicional" class="form-control" placeholder="SI NO NECESITA DEBE SER 0" required="" value="${servicio?.duracionAdicional}" onkeyup="this.value=Numeros(this.value)"/>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-sm-12 col-md-12 col-lg-12 pr-1">
+					<label class="form-label" for="espacios">Espacios que puedan ofrecer el servicio</label>
+					<div class="input-group">
+						<g:select id="espacios" name="espacios" class="form-control select2 multiple" from="${espacioList}"
+								  required="" style="width: 100%;"
+								  optionKey="id" value="${servicio?.espacios?.id}" optionValue="nombre" multiple="true"/>
+					</div>
+				</div>
+			</div>
+
 
 
 			<div class="row no-gutters">

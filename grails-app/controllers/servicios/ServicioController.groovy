@@ -2,6 +2,7 @@ package servicios
 
 import auth.User
 import empresa.Empresa
+import espacio.Espacio
 import grails.plugin.springsecurity.annotation.Secured
 import grails.validation.ValidationException
 import static org.springframework.http.HttpStatus.*
@@ -23,7 +24,9 @@ class ServicioController {
 
     @Secured(['ROLE_ADMIN'])
     def create() {
-        respond new Servicio(params)
+        List<Espacio> espacioList = new ArrayList<>()
+        espacioList = Espacio.findAllByEmpresa(Empresa.findByUsuario(springSecurityService?.getCurrentUser()))
+        respond new Servicio(params), model: [ espacioList: espacioList ]
     }
 
     @Secured(['ROLE_ADMIN'])
@@ -34,6 +37,7 @@ class ServicioController {
         }
 
         try {
+            //TODO: VALIDAR QUE LOS ESPACIOS ESTEN ASOCIADOS A LA EMPRESA DEL USUARIO
             User user = springSecurityService?.getCurrentUser()
             Empresa empresa = Empresa.findByUsuario(user)
             servicio.habilitado =  params?.habilitado ? true : false
@@ -56,7 +60,10 @@ class ServicioController {
                 notFound()
                 return
             }
-            respond servicioService.get(id)
+            List<Espacio> espacioList = new ArrayList<>()
+            espacioList = Espacio.findAllByEmpresa(Empresa.findByUsuario(springSecurityService?.getCurrentUser()))
+            Servicio servicio = servicioService.get(id)
+            respond servicio, model: [ espacioList: espacioList ]
         }catch(e){
             notFound()
             return
@@ -75,11 +82,11 @@ class ServicioController {
         }
 
         try {
+            //TODO: VALIDAR QUE LOS ESPACIOS ESTEN ASOCIADOS A LA EMPRESA DEL USUARIO
             User user = springSecurityService?.getCurrentUser()
             Empresa empresa = Empresa.findByUsuario(user)
             servicio.empresa = empresa
             servicio.habilitado =  params?.habilitado ? true : false
-            servicioService.save(servicio)
             servicioService.save(servicio)
         } catch (ValidationException e) {
             flash.error = " Ha ocurrido un error, Intenta nuevamente."

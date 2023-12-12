@@ -27,6 +27,12 @@
 
         </li>
 %{--        <li>--}%
+%{--            <a href="${createLink(controller: 'alarma', action: 'index')}" title="Font Icons" data-filter-tags="font icons">--}%
+%{--                <i class="fal fa-alarm-clock"></i>--}%
+%{--                <span class="nav-link-text" data-i18n="nav.font_icons">Alarmas</span>--}%
+%{--            </a>--}%
+%{--        </li>--}%
+%{--        <li>--}%
 %{--            <a href="#" title="Font Icons" data-filter-tags="font icons">--}%
 %{--                <i class="fal fa-handshake"></i>--}%
 %{--                <span class="nav-link-text" data-i18n="nav.font_icons">Asociados</span>--}%

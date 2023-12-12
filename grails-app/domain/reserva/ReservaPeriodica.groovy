@@ -4,7 +4,7 @@ import auth.User
 import empresa.Empresa
 import espacio.Espacio
 
-class ReservaPlanificada {
+class ReservaPeriodica {
 
     Dia dias
     User usuario
@@ -18,7 +18,7 @@ class ReservaPlanificada {
     Espacio espacio
     Empresa empresa
 
-//    static hasMany = [reservas: Reserva]
+    static hasMany = [reservas: Reserva]
 
     static constraints = {
         dias nullable: true

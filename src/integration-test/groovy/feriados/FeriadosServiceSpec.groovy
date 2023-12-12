@@ -1,4 +1,4 @@
-package servicios
+package feriados
 
 import grails.testing.mixin.integration.Integration
 import grails.gorm.transactions.Rollback
@@ -7,37 +7,37 @@ import org.hibernate.SessionFactory
 
 @Integration
 @Rollback
-class ServicioServiceSpec extends Specification {
+class FeriadosServiceSpec extends Specification {
 
-    ServicioService servicioService
+    FeriadosService feriadosService
     SessionFactory sessionFactory
 
     private Long setupData() {
         // TODO: Populate valid domain instances and return a valid ID
-        //new Servicio(...).save(flush: true, failOnError: true)
-        //new Servicio(...).save(flush: true, failOnError: true)
-        //Servicio servicio = new Servicio(...).save(flush: true, failOnError: true)
-        //new Servicio(...).save(flush: true, failOnError: true)
-        //new Servicio(...).save(flush: true, failOnError: true)
+        //new Feriados(...).save(flush: true, failOnError: true)
+        //new Feriados(...).save(flush: true, failOnError: true)
+        //Feriados feriados = new Feriados(...).save(flush: true, failOnError: true)
+        //new Feriados(...).save(flush: true, failOnError: true)
+        //new Feriados(...).save(flush: true, failOnError: true)
         assert false, "TODO: Provide a setupData() implementation for this generated test suite"
-        //servicio.id
+        //feriados.id
     }
 
     void "test get"() {
         setupData()
 
         expect:
-        servicioService.get(1) != null
+        feriadosService.get(1) != null
     }
 
     void "test list"() {
         setupData()
 
         when:
-        List<Servicio> servicioList = servicioService.list(max: 2, offset: 2)
+        List<Feriados> feriadosList = feriadosService.list(max: 2, offset: 2)
 
         then:
-        servicioList.size() == 2
+        feriadosList.size() == 2
         assert false, "TODO: Verify the correct instances are returned"
     }
 
@@ -45,30 +45,30 @@ class ServicioServiceSpec extends Specification {
         setupData()
 
         expect:
-        servicioService.count() == 5
+        feriadosService.count() == 5
     }
 
     void "test delete"() {
-        Long servicioId = setupData()
+        Long feriadosId = setupData()
 
         expect:
-        servicioService.count() == 5
+        feriadosService.count() == 5
 
         when:
-        servicioService.delete(servicioId)
+        feriadosService.delete(feriadosId)
         sessionFactory.currentSession.flush()
 
         then:
-        servicioService.count() == 4
+        feriadosService.count() == 4
     }
 
     void "test save"() {
         when:
         assert false, "TODO: Provide a valid instance to save"
-        Servicio servicio = new Servicio()
-        servicioService.save(servicio)
+        Feriados feriados = new Feriados()
+        feriadosService.save(feriados)
 
         then:
-        servicio.id != null
+        feriados.id != null
     }
 }
