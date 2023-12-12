@@ -1,14 +1,14 @@
 <g:form method="POST" controller="reserva" action="save" enctype="multipart/form-data" role="form"
-        params="[fechaReserva: fechaReserva, code: token, moduloId: modulo?.id, espacioId: espacio?.id]">
+        params="[fechaReserva: fechaReserva, code: token, moduloId: modulo?.id, espacioId: espacio?.id, servicio: servicio?.id]">
     <div class="panel-container show">
 
         <div class="panel-content">
-            <g:if test="${servicioList?.size() > 0}">
+            <g:if test="${servicio}">
                 <div class="form-group">
-                    <label class="form-label" for="servicio">Selecciona el Servicio</label>
+                    <label class="form-label" for="servicio">Servicio</label>
                     <div class="input-group">
                         <g:select name="servicio" id="servicio" class="form-control select2" style="width: 100%;" optionKey="id"
-                                  from="${servicioList}" noSelection="['':'- Seleccione Servicio -']" required="true"/>
+                                  from="${servicio}" disabled="" required="true" readonly=""/>
                     </div>
                 </div>
             </g:if>
@@ -42,10 +42,9 @@
                         <span class="input-group-text"><i class="fal fa-clock"></i></span>
                     </div>
                     <input type="text" name="horaTermino" id="horaTermino" class="form-control" placeholder="Hora Término" aria-label="Hora Término"
-                           value="${modulo?.horaTermino}" readonly />
+                           value="${horaTermino}" readonly />
                 </div>
             </div>
-            <g:if test="${servicioList?.size() <= 0}">
                 <div class="form-group">
                     <label class="form-label" for="valor">Valor</label>
                     <div class="input-group has-length">
@@ -53,10 +52,9 @@
                             <span class="input-group-text"><i class="fal fa-dollar-sign"></i></span>
                         </div>
                         <input type="text" name="valor" id="valor" class="form-control" placeholder="Valor" aria-label="Valor"
-                               value="${modulo?.valor}" readonly />
+                               value="${valor}" readonly />
                     </div>
                 </div>
-            </g:if>
 
             <div class="form-group">
                 <label class="form-label" for="espacio">Espacio</label>

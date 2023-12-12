@@ -78,5 +78,5 @@
                                                        puedeCancelar: puedeCancelar,
                                                        puedeReagendar: puedeReagendar
             ]"/>
-            <g:render template="reagendar" model="[reserva: reserva, configuracion: configuracion]"/>
+            <g:render template="reagendar" model="[reserva: reserva, configuracion: configuracion, servicio: servicioReservaList[0]?.servicio]"/>
         </div>

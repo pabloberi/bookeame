@@ -1,11 +1,11 @@
-package servicios
+package feriados
 
 import grails.testing.gorm.DomainUnitTest
 import grails.testing.web.controllers.ControllerUnitTest
 import grails.validation.ValidationException
 import spock.lang.*
 
-class ServicioReservaControllerSpec extends Specification implements ControllerUnitTest<ServicioReservaController>, DomainUnitTest<ServicioReserva> {
+class FeriadosControllerSpec extends Specification implements ControllerUnitTest<FeriadosController>, DomainUnitTest<Feriados> {
 
     def populateValidParams(params) {
         assert params != null
@@ -17,7 +17,7 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
 
     void "Test the index action returns the correct model"() {
         given:
-        controller.servicioReservaService = Mock(ServicioReservaService) {
+        controller.feriadosService = Mock(FeriadosService) {
             1 * list(_) >> []
             1 * count() >> 0
         }
@@ -26,8 +26,8 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
         controller.index()
 
         then:"The model is correct"
-        !model.servicioReservaList
-        model.servicioReservaCount == 0
+        !model.feriadosList
+        model.feriadosCount == 0
     }
 
     void "Test the create action returns the correct model"() {
@@ -35,7 +35,7 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
         controller.create()
 
         then:"The model is correctly created"
-        model.servicioReserva!= null
+        model.feriados!= null
     }
 
     void "Test the save action with a null instance"() {
@@ -45,14 +45,14 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
         controller.save(null)
 
         then:"A 404 error is returned"
-        response.redirectedUrl == '/servicioReserva/index'
+        response.redirectedUrl == '/feriados/index'
         flash.message != null
     }
 
     void "Test the save action correctly persists"() {
         given:
-        controller.servicioReservaService = Mock(ServicioReservaService) {
-            1 * save(_ as ServicioReserva)
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * save(_ as Feriados)
         }
 
         when:"The save action is executed with a valid instance"
@@ -60,38 +60,38 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'POST'
         populateValidParams(params)
-        def servicioReserva = new ServicioReserva(params)
-        servicioReserva.id = 1
+        def feriados = new Feriados(params)
+        feriados.id = 1
 
-        controller.save(servicioReserva)
+        controller.save(feriados)
 
         then:"A redirect is issued to the show action"
-        response.redirectedUrl == '/servicioReserva/show/1'
+        response.redirectedUrl == '/feriados/show/1'
         controller.flash.message != null
     }
 
     void "Test the save action with an invalid instance"() {
         given:
-        controller.servicioReservaService = Mock(ServicioReservaService) {
-            1 * save(_ as ServicioReserva) >> { ServicioReserva servicioReserva ->
-                throw new ValidationException("Invalid instance", servicioReserva.errors)
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * save(_ as Feriados) >> { Feriados feriados ->
+                throw new ValidationException("Invalid instance", feriados.errors)
             }
         }
 
         when:"The save action is executed with an invalid instance"
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'POST'
-        def servicioReserva = new ServicioReserva()
-        controller.save(servicioReserva)
+        def feriados = new Feriados()
+        controller.save(feriados)
 
         then:"The create view is rendered again with the correct model"
-        model.servicioReserva != null
+        model.feriados != null
         view == 'create'
     }
 
     void "Test the show action with a null id"() {
         given:
-        controller.servicioReservaService = Mock(ServicioReservaService) {
+        controller.feriadosService = Mock(FeriadosService) {
             1 * get(null) >> null
         }
 
@@ -104,20 +104,20 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
 
     void "Test the show action with a valid id"() {
         given:
-        controller.servicioReservaService = Mock(ServicioReservaService) {
-            1 * get(2) >> new ServicioReserva()
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * get(2) >> new Feriados()
         }
 
         when:"A domain instance is passed to the show action"
         controller.show(2)
 
         then:"A model is populated containing the domain instance"
-        model.servicioReserva instanceof ServicioReserva
+        model.feriados instanceof Feriados
     }
 
     void "Test the edit action with a null id"() {
         given:
-        controller.servicioReservaService = Mock(ServicioReservaService) {
+        controller.feriadosService = Mock(FeriadosService) {
             1 * get(null) >> null
         }
 
@@ -130,15 +130,15 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
 
     void "Test the edit action with a valid id"() {
         given:
-        controller.servicioReservaService = Mock(ServicioReservaService) {
-            1 * get(2) >> new ServicioReserva()
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * get(2) >> new Feriados()
         }
 
         when:"A domain instance is passed to the show action"
         controller.edit(2)
 
         then:"A model is populated containing the domain instance"
-        model.servicioReserva instanceof ServicioReserva
+        model.feriados instanceof Feriados
     }
 
 
@@ -149,14 +149,14 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
         controller.update(null)
 
         then:"A 404 error is returned"
-        response.redirectedUrl == '/servicioReserva/index'
+        response.redirectedUrl == '/feriados/index'
         flash.message != null
     }
 
     void "Test the update action correctly persists"() {
         given:
-        controller.servicioReservaService = Mock(ServicioReservaService) {
-            1 * save(_ as ServicioReserva)
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * save(_ as Feriados)
         }
 
         when:"The save action is executed with a valid instance"
@@ -164,31 +164,31 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'PUT'
         populateValidParams(params)
-        def servicioReserva = new ServicioReserva(params)
-        servicioReserva.id = 1
+        def feriados = new Feriados(params)
+        feriados.id = 1
 
-        controller.update(servicioReserva)
+        controller.update(feriados)
 
         then:"A redirect is issued to the show action"
-        response.redirectedUrl == '/servicioReserva/show/1'
+        response.redirectedUrl == '/feriados/show/1'
         controller.flash.message != null
     }
 
     void "Test the update action with an invalid instance"() {
         given:
-        controller.servicioReservaService = Mock(ServicioReservaService) {
-            1 * save(_ as ServicioReserva) >> { ServicioReserva servicioReserva ->
-                throw new ValidationException("Invalid instance", servicioReserva.errors)
+        controller.feriadosService = Mock(FeriadosService) {
+            1 * save(_ as Feriados) >> { Feriados feriados ->
+                throw new ValidationException("Invalid instance", feriados.errors)
             }
         }
 
         when:"The save action is executed with an invalid instance"
         request.contentType = FORM_CONTENT_TYPE
         request.method = 'PUT'
-        controller.update(new ServicioReserva())
+        controller.update(new Feriados())
 
         then:"The edit view is rendered again with the correct model"
-        model.servicioReserva != null
+        model.feriados != null
         view == 'edit'
     }
 
@@ -199,13 +199,13 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
         controller.delete(null)
 
         then:"A 404 is returned"
-        response.redirectedUrl == '/servicioReserva/index'
+        response.redirectedUrl == '/feriados/index'
         flash.message != null
     }
 
     void "Test the delete action with an instance"() {
         given:
-        controller.servicioReservaService = Mock(ServicioReservaService) {
+        controller.feriadosService = Mock(FeriadosService) {
             1 * delete(2)
         }
 
@@ -215,7 +215,7 @@ class ServicioReservaControllerSpec extends Specification implements ControllerU
         controller.delete(2)
 
         then:"The user is redirected to index"
-        response.redirectedUrl == '/servicioReserva/index'
+        response.redirectedUrl == '/feriados/index'
         flash.message != null
     }
 }

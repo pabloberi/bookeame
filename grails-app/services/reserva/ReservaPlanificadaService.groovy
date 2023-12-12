@@ -2,17 +2,17 @@ package reserva
 
 import grails.gorm.services.Service
 
-@Service(ReservaPlanificada)
+@Service(ReservaPeriodica)
 interface ReservaPlanificadaService {
 
-    ReservaPlanificada get(Serializable id)
+    ReservaPeriodica get(Serializable id)
 
-    List<ReservaPlanificada> list(Map args)
+    List<ReservaPeriodica> list(Map args)
 
     Long count()
 
     void delete(Serializable id)
 
-    ReservaPlanificada save(ReservaPlanificada reservaPlanificada)
+    ReservaPeriodica save(ReservaPeriodica reservaPlanificada)
 
 }

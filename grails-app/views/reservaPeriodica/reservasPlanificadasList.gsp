@@ -8,7 +8,7 @@
     <body>
 %{--    <g:render template="/layouts/botonera" params="[controlador: 'Reserva', metodo:'Vigentes' ]" />--}%
     <div style="margin-bottom: 2em;">
-        <a href="${createLink(controller: 'reserva', action: 'crearReservaManual', id: espacio?.id)}"><button class="btn btn-success" type="button">Volver al Calendario</button></a>
+        <a href="${createLink(controller: 'reservaPeriodica', action: 'create')}"><button class="btn btn-success" type="button">Volver</button></a>
     </div>
     <div id="panel-7" class="panel">
         <div class="panel-hdr">
@@ -67,7 +67,7 @@
     </div>
     %{--<asset:javascript src="vendors.bundle.js"/>--}%
     <asset:javascript src="app.bundle.js"/>
-    <asset:javascript src="datagrid/datatables/datatables.bundle.js"/>
+    <asset:javascript src="datatables.bundle.js"/>
     <script type="text/javascript">
         $(document).ready( function () {
             $('#dt-basic-example').dataTable({

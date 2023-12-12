@@ -1,9 +1,9 @@
-package dto
+package gestion
 
 import grails.testing.gorm.DomainUnitTest
 import spock.lang.Specification
 
-class EventoCalendarioSpec extends Specification implements DomainUnitTest<EventoCalendario> {
+class FeriadosSpec extends Specification implements DomainUnitTest<Feriados> {
 
     def setup() {
     }

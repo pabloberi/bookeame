@@ -34,7 +34,6 @@
                 <div class="col-xl-2"></div>
                 <div id="calendar" class="col-xl-8"></div>
                 <div class="col-xl-2"></div>
-                <!-- Modal : TODO -->
                 <div class="modal fade" id="calendarModal" tabindex="-1" role="dialog" aria-hidden="true">
                     <div class="modal-dialog modal-lg" role="document">
                         <div class="modal-content">
