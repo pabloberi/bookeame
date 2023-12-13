@@ -360,9 +360,12 @@ class ReservaUtilService {
             log.error("Ha ocurrido un error inesperado")
             return crearReservaRs
         }
-         if( crearReservaRs.getReservaId() && params?.servicio?.toLong()){
-             servicioUtilService.guardarServicioEnReserva(params?.servicio?.toLong(), crearReservaRs.getReservaId() )
-         }
+        if(  params?.servicio != null &&  params?.servicio != "" ){
+            if( crearReservaRs.getReservaId() && params?.servicio?.toLong()){
+                servicioUtilService.guardarServicioEnReserva(params?.servicio?.toLong(), crearReservaRs.getReservaId() )
+            }
+        }
+
         return crearReservaRs
     }
 
