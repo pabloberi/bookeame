@@ -1,7 +1,8 @@
 package reserva
+
+import anotaciones.TrazaPrepago
 import auth.User
 import auth.UserService
-import com.sun.org.apache.xpath.internal.operations.Bool
 import configuracionEmpresa.ConfiguracionEmpresa
 import dto.CrearReservaRs
 import dto.EventoCalendario
@@ -360,12 +361,16 @@ class ReservaUtilService {
             log.error("Ha ocurrido un error inesperado")
             return crearReservaRs
         }
-         if( crearReservaRs.getReservaId() && params?.servicio?.toLong()){
-             servicioUtilService.guardarServicioEnReserva(params?.servicio?.toLong(), crearReservaRs.getReservaId() )
-         }
+        if( params?.servicio != null && params?.servicio != "" ){
+            if( crearReservaRs.getReservaId() && params?.servicio?.toLong()){
+                servicioUtilService.guardarServicioEnReserva(params?.servicio?.toLong(), crearReservaRs.getReservaId() )
+            }
+        }
+
         return crearReservaRs
     }
 
+//    @TrazaPrepago
     def crearReservaUsuario(ConfiguracionEmpresa conf, ModuloDto modulo, Espacio espacio, Date fecha, Long tipoReservaId){
         CrearReservaRs crearReservaRs = new CrearReservaRs()
         crearReservaRs.setCodigo("01")
@@ -399,6 +404,7 @@ class ReservaUtilService {
             }
         }
         if( tipoReservaId == 2 && conf?.tipoPago?.prepago ){
+            //TODO: TRAZAR
             ReservaTemp reservaTemp = new ReservaTemp()
             if( modulo?.getValor() > General.findByNombre('valorMinFlow')?.valor?.toInteger() ?: 0 ){
                 try {
@@ -417,6 +423,7 @@ class ReservaUtilService {
                     return crearReservaRs
                 }
                 responsePago = prepagoUtilService?.pagarReserva(reservaTemp)
+
                 println(responsePago)
 
                 if( responsePago == "error" ){

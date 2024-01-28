@@ -527,6 +527,7 @@ class ReservaController {
         }catch(e) {}
     }
 
+    //TODO: TRAZAR
     @Secured(['permitAll()'])
     def confirmFlow(String token){
         boolean exito = true
