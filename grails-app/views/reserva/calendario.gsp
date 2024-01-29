@@ -149,7 +149,12 @@
         </div>
 
     </div>
+
+    <g:render template="modalPoliticas" />
+
 </div>
+
+
 <asset:javascript src="miscellaneous/fullcalendar/fullcalendar.bundle.js"/>
 <asset:javascript src="dependency/moment/moment.js"/>
 
@@ -287,7 +292,7 @@
         calendar.render();
     });
 
-    $('.select2').select2();
+    // $('.select2').select2();
 
     <g:if test="${flash.message}">
     $(document).ready( function () {
@@ -300,6 +305,11 @@
     });
     </g:if>
 
+    <g:if test="${politicaReservaList?.size() > 0 }">
+        $(document).ready( function () {
+            $('#modalPoliticas').modal('show');
+        });
+    </g:if>
 </script>
 </body>
 </html>
