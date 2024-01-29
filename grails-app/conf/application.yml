@@ -1,5 +1,9 @@
 ---
 grails:
+    spring:
+        aop:
+            enable: true
+            autoproxy: true
     profile: web
     codegen:
         defaultPackage: gestion

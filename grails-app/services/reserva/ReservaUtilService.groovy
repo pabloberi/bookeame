@@ -1,4 +1,6 @@
 package reserva
+
+import anotaciones.TrazaPrepago
 import auth.User
 import auth.UserService
 import com.sun.org.apache.xpath.internal.operations.Bool
@@ -360,7 +362,7 @@ class ReservaUtilService {
             log.error("Ha ocurrido un error inesperado")
             return crearReservaRs
         }
-        if(  params?.servicio != null &&  params?.servicio != "" ){
+        if( params?.servicio != null && params?.servicio != "" ){
             if( crearReservaRs.getReservaId() && params?.servicio?.toLong()){
                 servicioUtilService.guardarServicioEnReserva(params?.servicio?.toLong(), crearReservaRs.getReservaId() )
             }
@@ -369,6 +371,7 @@ class ReservaUtilService {
         return crearReservaRs
     }
 
+//    @TrazaPrepago
     def crearReservaUsuario(ConfiguracionEmpresa conf, ModuloDto modulo, Espacio espacio, Date fecha, Long tipoReservaId){
         CrearReservaRs crearReservaRs = new CrearReservaRs()
         crearReservaRs.setCodigo("01")
