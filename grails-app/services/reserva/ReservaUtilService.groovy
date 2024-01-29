@@ -3,6 +3,7 @@ package reserva
 import anotaciones.TrazaPrepago
 import auth.User
 import auth.UserService
+import com.sun.org.apache.xpath.internal.operations.Bool
 import configuracionEmpresa.ConfiguracionEmpresa
 import dto.CrearReservaRs
 import dto.EventoCalendario
@@ -404,7 +405,6 @@ class ReservaUtilService {
             }
         }
         if( tipoReservaId == 2 && conf?.tipoPago?.prepago ){
-            //TODO: TRAZAR
             ReservaTemp reservaTemp = new ReservaTemp()
             if( modulo?.getValor() > General.findByNombre('valorMinFlow')?.valor?.toInteger() ?: 0 ){
                 try {
@@ -423,7 +423,6 @@ class ReservaUtilService {
                     return crearReservaRs
                 }
                 responsePago = prepagoUtilService?.pagarReserva(reservaTemp)
-
                 println(responsePago)
 
                 if( responsePago == "error" ){
