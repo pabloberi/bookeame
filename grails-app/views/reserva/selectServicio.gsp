@@ -49,9 +49,9 @@
                         <div class="panel-container show">
                             <div class="panel-content">
                                 <div class="border px-3 pt-3 pb-0 rounded">
-                                    <ul class="nav nav-pills" role="tablist">
-                                        <li class="nav-item"><a class="nav-link  " data-toggle="tab" href="#v-pills-0"><i class="fal fa-plus-circle mr-1"></i> Servicios</a></li>
-                                    </ul>
+%{--                                    <ul class="nav nav-pills" role="tablist">--}%
+%{--                                        <li class="nav-item"><a class="nav-link  " data-toggle="tab" href="#v-pills-0"></a></li>--}%
+%{--                                    </ul>--}%
                                     <script>
                                         $( document ).ready(function() {
                                             $('#v-pills-0').addClass('show');
