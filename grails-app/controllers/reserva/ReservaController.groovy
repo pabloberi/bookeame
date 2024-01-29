@@ -20,6 +20,7 @@ import evaluacion.EvaluacionService
 import evaluacion.EvaluacionToEspacio
 import gestion.NotificationService
 import grails.plugin.springsecurity.annotation.Secured
+import politicas.PoliticaReserva
 import servicios.Servicio
 import servicios.ServicioReserva
 import servicios.ServicioUtilService
@@ -70,13 +71,15 @@ class ReservaController {
                 }
                 if(validadorPermisosUtilService.esRoleUser()){
                     ConfiguracionEmpresa configuracion = ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa)
+                    List<PoliticaReserva> politicaReservaList = PoliticaReserva.findAllByEmpresa(reserva?.espacio?.empresa)
                     respond reserva, model: [
                             hoy: new Date(),
                             configuracion: configuracion,
                             puedeCancelar: validadorPermisosUtilService.userPuedeCancelarReserva(reserva,configuracion),
                             puedeReagendar: validadorPermisosUtilService.userPuedeReagendarReserva(reserva, configuracion),
                             servicioReservaList: servicioReservaList,
-                            valor: reservaUtilService.getValorReserva(reserva?.id)
+                            valor: reservaUtilService.getValorReserva(reserva?.id),
+                            politicaReservaList: politicaReservaList
                     ]
                 }
             }catch(e){
@@ -122,9 +125,11 @@ class ReservaController {
                 eventoList.removeAll{ eli -> eli?.getTitle() == "Reservado" }
                 // ESTE IF ES PARA LAS ALARMAS
                 List<Reserva> reservas = Reserva.findAllByEspacioAndInicioExactoGreaterThan(espacio, new Date() )
+                List<PoliticaReserva> politicaReservaList = PoliticaReserva.findAllByEmpresa(espacio?.empresa)
                 render(view: 'calendario', model: [eventoList: eventoList,
                                                    reservas: reservas,
-                                                   espacio: espacio
+                                                   espacio: espacio,
+                                                   politicaReservaList: politicaReservaList
                 ])
                 return
             }
@@ -145,8 +150,10 @@ class ReservaController {
             eventoList = reservaUtilService.getEventosCalendario(espacio?.id, null)
             if( validadorPermisosUtilService?.esRoleUser() ){ // ESTE IF ES PARA LAS ALARMAS
                 List<Reserva> reservas = Reserva.findAllByEspacioAndInicioExactoGreaterThan(espacio, new Date() )
+                List<PoliticaReserva> politicaReservaList = PoliticaReserva.findAllByEmpresa(espacio?.empresa)
                 respond espacio, model: [eventoList: eventoList,
-                                         reservas: reservas
+                                         reservas: reservas,
+                                         politicaReservaList: politicaReservaList
                 ]
                 return
             }

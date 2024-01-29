@@ -56,6 +56,7 @@
             </div>
         </div>
     </div>
+    <g:render template="modalPoliticas" />
 
     <asset:javascript src="/formplugins/select2/select2.bundle.js"/>
 
@@ -72,7 +73,11 @@
             toastr.warning("${flash.error}");
         });
         </g:if>
-
+        <g:if test="${politicaReservaList?.size() > 0 }">
+            $(document).ready( function () {
+                $('#modalPoliticas').modal('show');
+            });
+        </g:if>
     </script>
     </body>
 </html>

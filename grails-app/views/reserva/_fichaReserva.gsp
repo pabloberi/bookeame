@@ -41,7 +41,7 @@
                 <sec:ifAnyGranted roles="ROLE_SUPERUSER, ROLE_ADMIN">
                     <tr class="prop">
                         <td valign="top" class="name"><g:message code="reserva.usuario.label" default="Usuario" /></td>
-                        <td valign="top" class="value">${fieldValue(bean: reserva, field: "usuario")}</td>
+                        <td valign="top" class="value">${fieldValue(bean: reserva, field: "usuario")} (${reserva?.usuario?.indiceConfianza})</td>
                     </tr>
                     <tr class="prop">
                         <td valign="top" class="name"><g:message code="reserva.usuario.label" default="Celular Usuario" /></td>
