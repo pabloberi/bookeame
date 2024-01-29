@@ -26,7 +26,7 @@ class PrepagoUtilService {
                 FlowEmpresa flowEmpresa = FlowEmpresa.findByEmpresa(reserva?.espacio?.empresa)
                 if( flowEmpresa ){
                     def params = [
-                            "amount"         : costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 0),
+                            "amount"         : costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ),
                             "apiKey"         : flowEmpresa?.apiKey,
                             "commerceOrder"  : flowService.correlativoFlow(),
                             "email"          : user?.email ?: "pablo@bericul.com",

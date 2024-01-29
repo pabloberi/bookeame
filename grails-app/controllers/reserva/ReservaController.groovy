@@ -552,9 +552,9 @@ class ReservaController {
                         res.fechaReserva = reserva?.fechaReserva
                         res.horaInicio = reserva?.horaInicio
                         res.horaTermino = reserva?.horaTermino
-                        res.valor = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) ?: reserva?.valor
+                        res.valor = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ) ?: reserva?.valor
                         res.valorFinal = res.valor
-                        res.valorComisionFlow = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ?: 3.19 ) - reserva?.valor
+                        res.valorComisionFlow = prepagoUtilService?.costoTransaccion(reserva?.valor, flowEmpresa?.comision?.valor ) - reserva?.valor
                         res.espacio = reserva?.espacio
                         res.tipoReserva = reserva?.tipoReserva
                         res.estadoReserva = reserva?.estadoReserva
