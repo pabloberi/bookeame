@@ -51,6 +51,11 @@ dependencies {
     compileOnly "io.micronaut:micronaut-inject-groovy"
     implementation 'org.grails.plugins:views-json:2.3.2'
     runtimeOnly 'mysql:mysql-connector-java:8.0.30'
+
+    implementation 'org.aspectj:aspectjrt:1.9.21'
+    implementation 'org.aspectj:aspectjweaver:1.9.21'
+
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     implementation "org.springframework.boot:spring-boot-starter-logging"
     implementation "org.springframework.boot:spring-boot-autoconfigure"
