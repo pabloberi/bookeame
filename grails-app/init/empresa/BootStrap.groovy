@@ -4,6 +4,7 @@ import auth.Role
 import auth.User
 import auth.UserRole
 import comercial.EstadoCuentaMensual
+import comercial.PeriodosPlan
 import espacio.Categoria
 import espacio.TipoEspacio
 import flow.Comision
@@ -437,6 +438,17 @@ class BootStrap {
             new Comision( valor: 0 ).save()
         }
         println("### OK")
+
+
+        println("### Creando Periodos")
+        if( !PeriodosPlan.count() ){
+            new PeriodosPlan(ultimosMeses: 6, nombre:  "Últimos 6 Meses").save()
+            new PeriodosPlan(ultimosMeses: 12, nombre:"Últimos 12 Meses").save()
+            new PeriodosPlan(ultimosMeses: 24, nombre:"Últimos 24 Meses").save()
+            new PeriodosPlan(ultimosMeses: 36, nombre:"Últimos 36 Meses").save()
+        }
+        println("### OK")
+
 
     }
     def destroy = {

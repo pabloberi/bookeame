@@ -3,6 +3,7 @@ package servicios
 import empresa.Empresa
 import grails.gorm.transactions.Transactional
 import reserva.Reserva
+import reserva.ReservaTemp
 
 @Transactional
 class ServicioUtilService {
@@ -19,14 +20,28 @@ class ServicioUtilService {
         try{
             Servicio servicio = Servicio.get(servicioId)
             Reserva reserva = Reserva.get(reservaId)
-
+            ReservaTemp temp = ReservaTemp.get(reservaId)
             ServicioReserva servicioReserva = new ServicioReserva()
+
+
             servicioReserva.servicio = servicio
             servicioReserva.reserva = reserva
+            servicioReserva.reservaTemp = temp
             servicioReserva.valor = servicio?.valor
 
             servicioReservaService.save(servicioReserva)
         }catch(e){}
+    }
+
+    void guardarServicioPrepago(ReservaTemp temp, Reserva reserva){
+        try{
+            ServicioReserva servicioReserva = ServicioReserva.findByReservaTemp(temp)
+            if( servicioReserva != null ){
+                servicioReserva.reserva = reserva
+                servicioReserva.reservaTemp = null
+                servicioReservaService.save(servicioReserva)
+            }
+        }catch(Exception e){}
     }
 
     def getServiciosPorReserva(Long reservaId){

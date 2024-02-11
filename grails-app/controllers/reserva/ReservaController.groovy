@@ -563,10 +563,14 @@ class ReservaController {
                         reservaService.save(res)
                         correoConfirmacionReserva(res?.id)
                         notificationService.sendPushNotification(res?.usuarioId,"Nueva reserva registrada", "Tienes una nueva reserva en tu agenda.")
+                        servicioUtilService.guardarServicioPrepago(reserva, res)
                         reservaTempService.delete(reserva?.id)
                         session['link'] = null
                         session['temp'] = null
-                    }catch(e){}
+                    }catch(e){
+                        exito = false
+                        return exito
+                    }
                 }else{
                     reservaTempService.delete(reserva?.id)
                     exito = false

@@ -16,6 +16,8 @@
                 <p>Recuerda que tu reserva será válida cuando la empresa acepte tu solicitud. Verifica el ESTADO de tu reserva.</p>
             </div>
         </g:if>
+        <g:render template="modalPoliticas" />
+
     </sec:ifAnyGranted>
 
     <div id="panel-11" class="panel">
@@ -56,7 +58,6 @@
             </div>
         </div>
     </div>
-    <g:render template="modalPoliticas" />
 
     <asset:javascript src="/formplugins/select2/select2.bundle.js"/>
 
