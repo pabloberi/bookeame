@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Plantilla de correo electrónico</title>
+    <title>Plantilla</title>
     <style>
     /* Estilos generales */
     body {
@@ -66,7 +66,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <img src="https://bookeame.cl/img/bookeame-logos/bookeame-full-blanco.png" alt="Logo" />
+        <img src="https://bookeame.cl:8443/img/bookeame-logos/bookeame-full-blanco.png" alt="Logo" />
         <h1 style="color: white;">Comprobante de Pago</h1>
         <h4 style="color: white;"># ${reserva?.codigo}</h4>
     </div>
