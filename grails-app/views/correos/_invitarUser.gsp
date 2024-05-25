@@ -68,7 +68,7 @@
 	<div class="header">
 		<img src="https://bookeame.cl:8443/img/bookeame-logos/bookeame-full-blanco.png" alt="Logo" />
 		<h1 style="color: white;">Registrate Gratis</h1>
-%{--		<h4 style="color: white;">#${reserva?.codigo}</h4>--}%
+%{--		<h4 style="color: white;"></h4>--}%
 	</div>
 	<table class="invoice">
 		<tr>
