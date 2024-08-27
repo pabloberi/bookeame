@@ -31,7 +31,7 @@
                                 <tr>
                                     <th>Acción</th>
                                     <th>Fecha Reserva</th>
-                                    <th>Valor</th>
+%{--                                    <th>Valor</th>--}%
                                     <th>Espacio</th>
                                     <th>Estado</th>
                                     <th>Tipo Reserva</th>
@@ -49,7 +49,7 @@
                                             </g:link>
                                         </td>
                                         <td><g:formatDate type="date" style="FULL" date="${reserva?.fechaReserva}" locale="es"/> ${reserva?.horaInicio} - ${reserva?.horaTermino}</td>
-                                        <td>$ ${reserva?.valor} .-</td>
+%{--                                        <td>$ ${reserva?.valor} .-</td>--}%
                                         <td>${reserva?.espacio}</td>
                                         <td>${reserva?.estadoReserva}</td>
                                         <td>${reserva?.tipoReserva}</td>

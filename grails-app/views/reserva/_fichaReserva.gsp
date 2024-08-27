@@ -24,7 +24,7 @@
                 </tr>
                 <tr class="prop">
                     <td valign="top" class="name"><g:message code="reserva.valor.label" default="Valor" /></td>
-                    <td valign="top" class="value">$ ${valor} .-</td>
+                    <td valign="top" class="value">$ ${registroPagoReserva?.monto ?: valor} .-</td>
                 </tr>
                 <tr class="prop">
                     <td valign="top" class="name"><g:message code="reserva.espacio.label" default="Espacio" /></td>

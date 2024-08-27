@@ -47,6 +47,7 @@ class ReservaUtilService {
     def validadorPermisosUtilService
     def formatoFechaUtilService
     def springSecurityService
+    RegistroPagoReservaService registroPagoReservaService
 
     UserService userService
     ReservaTempService reservaTempService
@@ -659,8 +660,14 @@ class ReservaUtilService {
         Reserva reserva = Reserva.findById(id)
         if(reserva){
             try{
-                if( pago != null && pago.length() > 0){
-                    reserva.valor = pago?.toInteger()
+                if( pago?.toInteger() ){
+                    RegistroPagoReserva registroPagoReserva =
+                            reserva?.registroPagoReserva ?: new  RegistroPagoReserva()
+
+                    registroPagoReserva.monto = pago?.toInteger()
+                    registroPagoReserva.concepto = "Pago Reserva"
+                    registroPagoReservaService.save(registroPagoReserva)
+                    reserva.registroPagoReserva = registroPagoReserva
                     reservaService.save(reserva)
                     exito = true
                 }

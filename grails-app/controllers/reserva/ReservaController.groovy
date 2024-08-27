@@ -41,6 +41,7 @@ class ReservaController {
     ReservaUtilService reservaUtilService
     PrepagoUtilService  prepagoUtilService
     ServicioUtilService servicioUtilService
+    RegistroPagoReservaService registroPagoReservaService
 
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy")
     def springSecurityService
@@ -66,7 +67,8 @@ class ReservaController {
                             esReservaHistorica: validaPermisosReservaUtilService?.esReservaHistorica(reserva),
                             configuracion: ConfiguracionEmpresa?.findByEmpresa(reserva?.espacio?.empresa),
                             servicioReservaList: servicioReservaList,
-                            valor: reservaUtilService.getValorReserva(reserva?.id)
+                            valor: reservaUtilService.getValorReserva(reserva?.id),
+                            registroPagoReserva: reserva?.registroPagoReserva
                     ]
                 }
                 if(validadorPermisosUtilService.esRoleUser()){
@@ -79,7 +81,8 @@ class ReservaController {
                             puedeReagendar: validadorPermisosUtilService.userPuedeReagendarReserva(reserva, configuracion),
                             servicioReservaList: servicioReservaList,
                             valor: reservaUtilService.getValorReserva(reserva?.id),
-                            politicaReservaList: politicaReservaList
+                            politicaReservaList: politicaReservaList,
+                            registroPagoReserva: registroPagoReserva
                     ]
                 }
             }catch(e){
@@ -564,6 +567,7 @@ class ReservaController {
                         correoConfirmacionReserva(res?.id)
                         notificationService.sendPushNotification(res?.usuarioId,"Nueva reserva registrada", "Tienes una nueva reserva en tu agenda.")
                         reservaTempService.delete(reserva?.id)
+                        reservaUtilService?.registrarPago(res?.id, res?.valor?.toString())
                         session['link'] = null
                         session['temp'] = null
                     }catch(e){}

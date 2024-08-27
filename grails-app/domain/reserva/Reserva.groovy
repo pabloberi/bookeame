@@ -34,12 +34,14 @@ class Reserva {
 
     Date dateCreated
     Boolean envioComprobante
+    RegistroPagoReserva registroPagoReserva
 
     static hasMany = [
             servicioReserva: ServicioReserva
     ]
 
     static constraints = {
+        registroPagoReserva nullable: true
         servicioReserva nullable: true
         usuario nullable: true
         fechaReserva nullable: true

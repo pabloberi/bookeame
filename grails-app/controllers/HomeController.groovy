@@ -8,6 +8,7 @@ import evaluacion.EvaluacionToUser
 import gestion.General
 import grails.converters.JSON
 import groovy.json.JsonSlurper
+import reserva.RegistroPagoReserva
 import reserva.Reserva
 import ubicacion.Comuna
 import ubicacion.Provincia
@@ -164,6 +165,7 @@ class HomeController {
         List<Reserva> reservaList
         def ingresoTotal = []
         def oneYearAgo = oneYearAgo()
+        Integer aux = 0
 
         Calendar c = Calendar.getInstance()
         c.setTime(oneYearAgo)
@@ -209,9 +211,8 @@ class HomeController {
                 }
 
                 for( reserva in reservaList){
-                    if(reserva?.valor){
-                        valor = valor + reserva?.valor
-                    }
+                    aux = reserva?.registroPagoReserva?.monto ?: 0
+                    valor = valor + aux
                 }
 
                 ingresoTotal.add([c.getTimeInMillis(), valor ])
@@ -355,6 +356,7 @@ class HomeController {
     def recaudacionEspacio(){
         List<Reserva> reservaList = []
         Integer recaudacion = 0
+        Integer aux = 0
         User user = springSecurityService.getCurrentUser()
         try{
             def espacioId = params?.espacioId?.toLong()
@@ -374,7 +376,11 @@ class HomeController {
 
                     }
                 }
-                recaudacion = reservaList?.sum { it?.valor ?: 0 }
+                for( reserva in reservaList){
+                     aux = reserva?.registroPagoReserva?.monto ?: 0
+                    recaudacion = recaudacion + aux
+                }
+//                recaudacion = reservaList?.sum { it?.valor ?: 0 }
             }
         }catch(e){}
         render template: '/kpi/tablaRecaudacion', model:[reservaList: reservaList, recaudacion: recaudacion]
@@ -412,6 +418,14 @@ class HomeController {
 
         redirect( controller: 'home', action: 'contactoSoporte')
     }
+
+//    def test(){
+//        Reserva reserva = Reserva.get(4370)
+//        User user = springSecurityService.getCurrentUser()
+//        render( view:"/../views/correos/_activarCtaAdmin",
+//                model: [ reserva: reserva, user:user ] )
+//    }
+
 
     @Secured(['ROLE_USER'])
     def cargarDireccion(boolean valor){
